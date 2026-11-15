@@ -591,9 +591,11 @@ def api_heard():
         if event.get("mode") == "DMR":
             radio_id = str(event.get("source") or "").strip()
             entry = dmr_ids.get(radio_id, {})
-            if not callsign:
-                callsign = entry.get("callsign", "")
-                event["callsign"] = callsign
+            if not callsign or callsign.isdigit():
+                resolved = entry.get("callsign", "")
+                if resolved:
+                    callsign = resolved
+                    event["callsign"] = callsign
 
         event["name"] = get_operator_name(callsign)
 
@@ -626,6 +628,14 @@ def api_live():
         if mode == "DMR":
             callsign = str(payload.get("src_info") or "")
             source = str(payload.get("src_id") or "")
+
+            # Risoluzione ID DMR anche per le trasmissioni LIVE.
+            if not callsign or callsign.isdigit():
+                entry = get_dmr_ids().get(source, {})
+                resolved = entry.get("callsign", "")
+                if resolved:
+                    callsign = resolved
+
             destination = (
                 ("TG " if payload.get("group") == "yes" else "")
                 + str(payload.get("dst_id") or "")
