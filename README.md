@@ -15,6 +15,29 @@ Web dashboard for MMDVMHost amateur-radio repeaters, with MQTT event collection,
 
 
 
+
+## Novità v0.1.6 / What's New
+
+### Italiano 🇮🇹
+
+- Gestione dei TalkGroup statici BrandMeister tramite API.
+- Pannelli indipendenti TS1 e TS2 per la gestione dei TG.
+- Corretta la visualizzazione dei nomi dei TalkGroup nella cronologia MQTT.
+- Migliorata l'interfaccia amministrativa con supporto IT/EN.
+
+**Collaborazioni:** Un ringraziamento a **Mane (DC2MH)** per la preziosa collaborazione al progetto.
+
+### English 🇬🇧
+
+- BrandMeister static TalkGroup management via API.
+- Independent TS1 and TS2 TalkGroup management panels.
+- Fixed TalkGroup name display in MQTT transmission history.
+- Improved administration interface with IT/EN support.
+
+**Acknowledgements:** Special thanks to **Mane (DC2MH)** for his valuable collaboration on the project.
+
+---
+
 ## Italiano
 
 ### Rilevamento automatico configurazione MMDVMHost
