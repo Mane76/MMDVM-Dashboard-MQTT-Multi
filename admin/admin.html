@@ -61,6 +61,7 @@ const sections=[
 {id:'links',keys:['dstar_dashboard','dstar_dashboard_label','mmdvmhost_url','mmdvmhost_label','dmrgateway_url','dmrgateway_label','ysfgateway_url','ysfgateway_label','ircddbgateway_url','ircddbgateway_label','m17gateway_url','m17gateway_label','aprsgateway_url','aprsgateway_label']},
 {id:'deployment',keys:['mode','mmdvm_ini','node_id','agent_topic_prefix']},
 {id:'paths',keys:['tg_list_dir','tg_list_file','dmr_ids']},
+{id:'brandmeister',keys:[]},
 {id:'mqtt',keys:['host','port','topic','username','password','tls','clear_password','agent_same_broker','agent_host','agent_port','agent_username','agent_password','agent_tls','clear_agent_password']},
 {id:'telegram',keys:[]},
 {id:'security',keys:[]},
@@ -69,8 +70,8 @@ const sections=[
 const fieldIt={mode:'Utilizza Agent MQTT remoto',mmdvm_ini:'File configurazione MMDVMHost (percorso completo)',node_id:'Node ID Agent',agent_topic_prefix:'Prefisso topic Agent',title:'Titolo dashboard',language:'Lingua predefinita',callsign:'Nominativo',location:'Località',city:'Città',locator:'Locator',altitude:'Altitudine',tx_frequency:'Frequenza TX',rx_frequency:'Frequenza RX',shift:'Shift',power:'Potenza',ctcss:'CTCSS',dmr_color_code:'Color Code DMR',dmr:'DMR',dstar:'D-Star',ysf:'YSF',fm:'FM',p25:'P25',nxdn:'NXDN',m17:'M17',pocsag:'POCSAG',ax25:'AX.25',radio:'Radio',modem:'Modem',computer:'Computer',antenna:'Antenna',organization:'Organizzazione',organization_description:'Descrizione organizzazione',maintainers:'Responsabili',collaboration:'Collaborazioni',banner:'Banner',repeater:'Foto ripetitore',logo:'Logo',dstar_dashboard:'Dashboard D-Star',dstar_dashboard_label:'Nome link D-Star',mmdvmhost_url:'URL MMDVMHost',mmdvmhost_label:'Nome link MMDVMHost',dmrgateway_url:'URL DMRGateway',dmrgateway_label:'Nome link DMRGateway',ysfgateway_url:'URL YSFGateway',ysfgateway_label:'Nome link YSFGateway',ircddbgateway_url:'URL ircDDBGateway',ircddbgateway_label:'Nome link ircDDBGateway',m17gateway_url:'URL M17Gateway',m17gateway_label:'Nome link M17Gateway',aprsgateway_url:'URL APRSGateway',aprsgateway_label:'Nome link APRSGateway',mmdvm_dir:'Directory MMDVM',host:'Broker MQTT',port:'Porta',topic:'Topic',username:'Utente MQTT',password:'Nuova password MQTT',tls:'TLS',clear_password:'Elimina password salvata',agent_same_broker:'Agent: stesso broker degli eventi MMDVM',agent_host:'Broker Agent MQTT',agent_port:'Porta Agent MQTT',agent_username:'Utente Agent MQTT',agent_password:'Nuova password Agent MQTT',agent_tls:'TLS Agent',clear_agent_password:'Elimina password Agent salvata',mmdvm_file:'File MMDVM.ini',mmdvm_logs:'Log MMDVM',dmr_ids:'Database DMR ID',tg_list_dir:'Directory TalkGroup',tg_list_file:'File TalkGroup'};
 const fieldEn={mode:'Use remote MQTT Agent',mmdvm_ini:'MMDVMHost configuration file (full path)',node_id:'Agent node ID',agent_topic_prefix:'Agent topic prefix',title:'Dashboard title',language:'Default language',callsign:'Callsign',location:'Location',city:'City',locator:'Locator',altitude:'Altitude',tx_frequency:'TX frequency',rx_frequency:'RX frequency',shift:'Shift',power:'Power',ctcss:'CTCSS',dmr_color_code:'DMR color code',dmr:'DMR',dstar:'D-Star',ysf:'YSF',fm:'FM',p25:'P25',nxdn:'NXDN',m17:'M17',pocsag:'POCSAG',ax25:'AX.25',radio:'Radio',modem:'Modem',computer:'Computer',antenna:'Antenna',organization:'Organization',organization_description:'Organization description',maintainers:'Maintainers',collaboration:'Collaborations',banner:'Banner',repeater:'Repeater photo',logo:'Logo',dstar_dashboard:'D-Star dashboard',dstar_dashboard_label:'D-Star link label',mmdvmhost_url:'MMDVMHost URL',mmdvmhost_label:'MMDVMHost link label',dmrgateway_url:'DMRGateway URL',dmrgateway_label:'DMRGateway link label',ysfgateway_url:'YSFGateway URL',ysfgateway_label:'YSFGateway link label',ircddbgateway_url:'ircDDBGateway URL',ircddbgateway_label:'ircDDBGateway link label',m17gateway_url:'M17Gateway URL',m17gateway_label:'M17Gateway link label',aprsgateway_url:'APRSGateway URL',aprsgateway_label:'APRSGateway link label',mmdvm_dir:'MMDVM directory',host:'MQTT broker',port:'Port',topic:'Topic',username:'MQTT username',password:'New MQTT password',tls:'TLS',clear_password:'Clear saved password',agent_same_broker:'Agent: use same broker as MMDVM events',agent_host:'Agent MQTT broker',agent_port:'Agent MQTT port',agent_username:'Agent MQTT username',agent_password:'New Agent MQTT password',agent_tls:'Agent TLS',clear_agent_password:'Clear saved Agent password',mmdvm_file:'MMDVM.ini file',mmdvm_logs:'MMDVM logs',dmr_ids:'DMR ID database',tg_list_dir:'TalkGroup directory',tg_list_file:'TalkGroup file'};
 const dict={
-it:{subtitle:'Configurazione del sistema',preview:'AMMINISTRAZIONE',notice:'Le impostazioni della dashboard sono modificabili. I parametri radio letti automaticamente da MMDVM.ini o dall’Agent MQTT sono contrassegnati con 🔒 e non modificabili. I valori non disponibili possono essere inseriti manualmente. Le modalità radio sono in sola lettura.',footer:'Area amministrativa MMDVM Dashboard · Connessione HTTPS richiesta',setupTitle:'Prima configurazione',setupHint:'Inserisci il token di attivazione conservato sul server e scegli le credenziali amministrative. Il token verrà utilizzato una sola volta.',loginTitle:'Accesso amministratore',loginHint:'Accedi con le credenziali scelte durante la prima configurazione.',setup:'Crea amministratore',login:'Accedi',logout:'Esci',token:'Token di attivazione',username:'Nome utente',password:'Password',confirm:'Conferma password',newUsername:'Nome utente nuovo (o attuale)',currentPassword:'Password attuale',newPassword:'Nuova password (lascia vuoto per non cambiarla)',confirmPassword:'Conferma nuova password',saveCredentials:'Aggiorna credenziali',saveConfig:'Salva modifiche',configSaved:'Configurazione salvata correttamente.',ready:'Dati caricati da /api/config.',offline:'Impossibile caricare i dati della dashboard.',credentialsChanged:'Credenziali aggiornate. Effettua nuovamente il login.',created:'Amministratore creato. Ora effettua il login.',mismatch:'Le password non coincidono.',loading:'Caricamento…',error:'Operazione non riuscita',yes:'Attivo',no:'Disattivo',unknown:'Non disponibile',sections:{deployment:'Collegamento MMDVM',dashboard:'Generale',repeater:'Ripetitore',modes:'Modalità radio',hardware:'Hardware',station:'Stazione e organizzazione',images:'Immagini',links:'Collegamenti',paths:'Percorsi dei file',mqtt:'MQTT',telegram:'Telegram Bot',security:'Sicurezza e accesso',updates:'Aggiornamenti'},hints:{deployment:'Seleziona Agent remoto oppure MMDVM.ini locale.',dashboard:'Titolo e lingua predefinita della dashboard.',repeater:'Dati identificativi e frequenze del ripetitore.',modes:'Stato effettivo letto da MMDVM.ini. Non modificabile da questa pagina.',hardware:'Apparati e antenna installati.',station:'Organizzazione, responsabili e collaborazioni.',images:'Percorsi delle immagini utilizzate dalla dashboard.',links:'Collegamenti a servizi esterni.',paths:'Percorsi dei file utilizzati dal backend.',mqtt:'Connessione al broker MQTT esistente. La password vuota resta invariata.',telegram:'Configura le notifiche delle trasmissioni radio inviate tramite Telegram.',updates:'Verifica la versione installata e gestisci gli aggiornamenti.',security:'Per cambiare il nome utente, inserisci quello desiderato e la password attuale. La nuova password è facoltativa.'},fields:fieldIt},
-en:{subtitle:'System configuration',preview:'ADMINISTRATION',notice:'Dashboard settings can be edited. Radio parameters automatically read from MMDVM.ini or the MQTT Agent are marked with 🔒 and cannot be edited. Unavailable values can be entered manually. Radio modes are read-only.',footer:'MMDVM Dashboard administration · HTTPS connection required',setupTitle:'Initial setup',setupHint:'Enter the activation token stored on the server and choose administrator credentials. The token can only be used once.',loginTitle:'Administrator login',loginHint:'Sign in using the credentials created during initial setup.',setup:'Create administrator',login:'Sign in',logout:'Log out',token:'Activation token',username:'Username',password:'Password',confirm:'Confirm password',newUsername:'New (or current) username',currentPassword:'Current password',newPassword:'New password (leave blank to keep it)',confirmPassword:'Confirm new password',saveCredentials:'Update credentials',saveConfig:'Save changes',configSaved:'Configuration saved successfully.',ready:'Data loaded from /api/config.',offline:'Unable to load dashboard data.',credentialsChanged:'Credentials updated. Please sign in again.',created:'Administrator created. Please sign in.',mismatch:'Passwords do not match.',loading:'Loading…',error:'Operation failed',yes:'Enabled',no:'Disabled',unknown:'Unavailable',sections:{deployment:'MMDVM connection',dashboard:'General',repeater:'Repeater',modes:'Radio modes',hardware:'Hardware',station:'Station and organization',images:'Images',links:'Links',paths:'File paths',mqtt:'MQTT',telegram:'Telegram Bot',security:'Security and access',updates:'Updates'},hints:{deployment:'Select remote Agent or local MMDVM.ini.',dashboard:'Dashboard title and default language.',repeater:'Repeater identity and frequencies.',modes:'Actual mode status read from MMDVM.ini. Not editable here.',hardware:'Installed equipment and antenna.',station:'Organization, maintainers and collaborations.',images:'Image paths used by the dashboard.',links:'Links to external services.',paths:'File paths used by the backend.',mqtt:'Connection to the existing MQTT broker. Blank password keeps the saved value.',telegram:'Configure radio transmission notifications sent through Telegram.',updates:'Check the installed version and manage updates.',security:'To change the username, enter the desired name and your current password. A new password is optional.'},fields:fieldEn}
+it:{subtitle:'Configurazione del sistema',preview:'AMMINISTRAZIONE',notice:'Le impostazioni della dashboard sono modificabili. I parametri radio letti automaticamente da MMDVM.ini o dall’Agent MQTT sono contrassegnati con 🔒 e non modificabili. I valori non disponibili possono essere inseriti manualmente. Le modalità radio sono in sola lettura.',footer:'Area amministrativa MMDVM Dashboard · Connessione HTTPS richiesta',setupTitle:'Prima configurazione',setupHint:'Inserisci il token di attivazione conservato sul server e scegli le credenziali amministrative. Il token verrà utilizzato una sola volta.',loginTitle:'Accesso amministratore',loginHint:'Accedi con le credenziali scelte durante la prima configurazione.',setup:'Crea amministratore',login:'Accedi',logout:'Esci',token:'Token di attivazione',username:'Nome utente',password:'Password',confirm:'Conferma password',newUsername:'Nome utente nuovo (o attuale)',currentPassword:'Password attuale',newPassword:'Nuova password (lascia vuoto per non cambiarla)',confirmPassword:'Conferma nuova password',saveCredentials:'Aggiorna credenziali',saveConfig:'Salva modifiche',configSaved:'Configurazione salvata correttamente.',ready:'Dati caricati da /api/config.',offline:'Impossibile caricare i dati della dashboard.',credentialsChanged:'Credenziali aggiornate. Effettua nuovamente il login.',created:'Amministratore creato. Ora effettua il login.',mismatch:'Le password non coincidono.',loading:'Caricamento…',error:'Operazione non riuscita',yes:'Attivo',no:'Disattivo',unknown:'Non disponibile',sections:{deployment:'Collegamento MMDVM',dashboard:'Generale',repeater:'Ripetitore',modes:'Modalità radio',hardware:'Hardware',station:'Stazione e organizzazione',images:'Immagini',links:'Collegamenti',paths:'Percorsi dei file',brandmeister:'Talkgroup BrandMeister',mqtt:'MQTT',telegram:'Telegram Bot',security:'Sicurezza e accesso',updates:'Aggiornamenti'},hints:{deployment:'Seleziona Agent remoto oppure MMDVM.ini locale.',dashboard:'Titolo e lingua predefinita della dashboard.',repeater:'Dati identificativi e frequenze del ripetitore.',modes:'Stato effettivo letto da MMDVM.ini. Non modificabile da questa pagina.',hardware:'Apparati e antenna installati.',station:'Organizzazione, responsabili e collaborazioni.',images:'Percorsi delle immagini utilizzate dalla dashboard.',links:'Collegamenti a servizi esterni.',paths:'Percorsi dei file utilizzati dal backend.',mqtt:'Connessione al broker MQTT esistente. La password vuota resta invariata.',telegram:'Configura le notifiche delle trasmissioni radio inviate tramite Telegram.',updates:'Verifica la versione installata e gestisci gli aggiornamenti.',security:'Per cambiare il nome utente, inserisci quello desiderato e la password attuale. La nuova password è facoltativa.'},fields:fieldIt},
+en:{subtitle:'System configuration',preview:'ADMINISTRATION',notice:'Dashboard settings can be edited. Radio parameters automatically read from MMDVM.ini or the MQTT Agent are marked with 🔒 and cannot be edited. Unavailable values can be entered manually. Radio modes are read-only.',footer:'MMDVM Dashboard administration · HTTPS connection required',setupTitle:'Initial setup',setupHint:'Enter the activation token stored on the server and choose administrator credentials. The token can only be used once.',loginTitle:'Administrator login',loginHint:'Sign in using the credentials created during initial setup.',setup:'Create administrator',login:'Sign in',logout:'Log out',token:'Activation token',username:'Username',password:'Password',confirm:'Confirm password',newUsername:'New (or current) username',currentPassword:'Current password',newPassword:'New password (leave blank to keep it)',confirmPassword:'Confirm new password',saveCredentials:'Update credentials',saveConfig:'Save changes',configSaved:'Configuration saved successfully.',ready:'Data loaded from /api/config.',offline:'Unable to load dashboard data.',credentialsChanged:'Credentials updated. Please sign in again.',created:'Administrator created. Please sign in.',mismatch:'Passwords do not match.',loading:'Loading…',error:'Operation failed',yes:'Enabled',no:'Disabled',unknown:'Unavailable',sections:{deployment:'MMDVM connection',dashboard:'General',repeater:'Repeater',modes:'Radio modes',hardware:'Hardware',station:'Station and organization',images:'Images',links:'Links',paths:'File paths',brandmeister:'BrandMeister talkgroups',mqtt:'MQTT',telegram:'Telegram Bot',security:'Security and access',updates:'Updates'},hints:{deployment:'Select remote Agent or local MMDVM.ini.',dashboard:'Dashboard title and default language.',repeater:'Repeater identity and frequencies.',modes:'Actual mode status read from MMDVM.ini. Not editable here.',hardware:'Installed equipment and antenna.',station:'Organization, maintainers and collaborations.',images:'Image paths used by the dashboard.',links:'Links to external services.',paths:'File paths used by the backend.',mqtt:'Connection to the existing MQTT broker. Blank password keeps the saved value.',telegram:'Configure radio transmission notifications sent through Telegram.',updates:'Check the installed version and manage updates.',security:'To change the username, enter the desired name and your current password. A new password is optional.'},fields:fieldEn}
 };
 const $=id=>document.getElementById(id);
 let lang='it',active='repeater',config={},configured=false,authenticated=false,csrf='',authMode='login';
@@ -89,12 +90,12 @@ function updateDeploymentFields(){
   if(input)input.disabled=remote?(key==='mmdvm_ini'):(key!=='mmdvm_ini');
  }
 }
-function renderPanel(){const t=tr();$('authbox').classList.add('hidden');$('shell').classList.remove('hidden');$('logout').classList.remove('hidden');$('logout').textContent=t.logout;$('modeBadge').textContent=t.preview;$('navigation').replaceChildren();for(const section of sections){const b=document.createElement('button');b.type='button';b.className='nav'+(active===section.id?' active':'');b.textContent=t.sections[section.id];b.addEventListener('click',()=>{active=section.id;renderPanel()});$('navigation').appendChild(b)}$('sectionTitle').textContent=t.sections[active];$('sectionHint').textContent=t.hints[active];$('fields').replaceChildren();$('fields').classList.toggle('telegram-layout',active==='telegram');$('configActions').classList.toggle('hidden',active==='modes'||active==='security'||active==='updates');$('saveConfig').textContent=t.saveConfig;$('securityArea').classList.toggle('hidden',active!=='security');$('updatesArea').classList.toggle('hidden',active!=='updates');if(active==='updates'){
+function renderPanel(){const t=tr();$('authbox').classList.add('hidden');$('shell').classList.remove('hidden');$('logout').classList.remove('hidden');$('logout').textContent=t.logout;$('modeBadge').textContent=t.preview;$('navigation').replaceChildren();for(const section of sections){const b=document.createElement('button');b.type='button';b.className='nav'+(active===section.id?' active':'');b.textContent=t.sections[section.id];b.addEventListener('click',()=>{active=section.id;renderPanel()});$('navigation').appendChild(b)}$('sectionTitle').textContent=t.sections[active];$('sectionHint').textContent=t.hints[active]||(active==='brandmeister'?(lang==='it'?'Gestione TG statici e dinamici per slot BrandMeister.':'Manage static and dynamic TGs for each BrandMeister slot.'):'');$('fields').replaceChildren();$('fields').classList.toggle('telegram-layout',active==='telegram');$('configActions').classList.toggle('hidden',active==='modes'||active==='security'||active==='updates');$('saveConfig').textContent=t.saveConfig;$('securityArea').classList.toggle('hidden',active!=='security');$('updatesArea').classList.toggle('hidden',active!=='updates');if(active==='updates'){
   renderUpdates();
   status($('status'),'');
   return;
 }
-if(active==='telegram'){renderTelegram();status($('status'),'');return}if(active==='security'){$('labelNewUsername').textContent=t.newUsername;$('labelCurrentPassword').textContent=t.currentPassword;$('labelNewPassword').textContent=t.newPassword;$('labelConfirmPassword').textContent=t.confirmPassword;$('saveCredentials').textContent=t.saveCredentials;status($('status'),'');return}
+if(active==='brandmeister'){renderBrandmeister();status($('status'),'');return}if(active==='telegram'){renderTelegram();status($('status'),'');return}if(active==='security'){$('labelNewUsername').textContent=t.newUsername;$('labelCurrentPassword').textContent=t.currentPassword;$('labelNewPassword').textContent=t.newPassword;$('labelConfirmPassword').textContent=t.confirmPassword;$('saveCredentials').textContent=t.saveCredentials;status($('status'),'');return}
 const section=sections.find(s=>s.id===active);for(const key of section.keys){const wrap=document.createElement('div');wrap.className='field';const label=document.createElement('label');label.textContent=t.fields[key]||key;const input=document.createElement(
  (key==='language'&&active==='dashboard')||(active==='mqtt'&&(key==='tls'||key==='agent_tls'))?'select':'input'
 );
@@ -497,10 +498,97 @@ async function saveTelegram(){
  finally{button.disabled=false}
 }
 
+
+function renderBrandmeister(){
+ const data=config.brandmeister||{};
+ const fields=$('fields');fields.replaceChildren();
+ const it=lang==='it';
+ const credentials=document.createElement('div');
+ credentials.className='full fields';credentials.id='bmCredentials';
+ for(const key of ['device_id','api_key']){
+  const wrap=document.createElement('div');wrap.className='field';
+  const label=document.createElement('label');
+  label.textContent=key==='device_id'?'BrandMeister Device ID':'BrandMeister API Key';
+  const input=document.createElement('input');input.dataset.bm=key;
+  input.type=key==='api_key'?'password':'text';input.autocomplete='off';
+  input.value=key==='device_id'?(data.device_id||''):'';
+  if(key==='api_key')input.placeholder=data.api_key_set?(it?'Chiave già salvata (lascia vuoto per mantenerla)':'Key saved (leave blank to keep)'):(it?'Inserisci API Key':'Enter API Key');
+  wrap.append(label,input);credentials.appendChild(wrap);
+ }
+ fields.appendChild(credentials);
+ const info=document.createElement('p');info.className='hint full';
+ info.textContent=it?'Le operazioni agiscono esclusivamente su BrandMeister. Device ID e API Key sono condivisi tra i due timeslot.':'Actions affect BrandMeister only. Device ID and API Key are shared by both timeslots.';
+ fields.appendChild(info);
+ const manager=document.createElement('section');manager.className='full';manager.id='bmManager';
+ fields.appendChild(manager);renderBmManager();
+}
+async function saveBrandmeister(){
+ if(config.brandmeisterLoaded!==true){status($('status'),lang==='it'?'Impostazioni BrandMeister non disponibili.':'BrandMeister settings unavailable.',true);return;}
+ const data={};
+ for(const input of $('fields').querySelectorAll('[data-bm]')){
+  if(input.dataset.bm==='api_key'){if(input.value)data.api_key=input.value;}
+  else data[input.dataset.bm]=input.value;
+ }
+ const button=$('saveConfig');button.disabled=true;status($('status'),'');
+ try{const response=await post('brandmeister',data,true);config.brandmeister=response.brandmeister;config.brandmeisterLoaded=true;renderPanel();status($('status'),tr().configSaved);}
+ catch(error){status($('status'),error.message||tr().error,true);}
+ finally{button.disabled=false;}
+}
+function renderBmManager(){
+ const area=$('bmManager');if(!area)return;area.replaceChildren();
+ const it=lang==='it';
+ if(config.brandmeisterLoaded!==true){area.textContent=it?'Configurazione non disponibile.':'Configuration unavailable.';return;}
+ const grid=document.createElement('div');grid.className='fields';
+ for(const slot of [1,2]){
+  const box=document.createElement('section');box.className='telegram-card';
+  const title=document.createElement('h3');title.textContent='TS'+slot;
+  const subtitle=document.createElement('div');
+  subtitle.textContent=it?'TG Statici':'Static TGs';
+  subtitle.style.fontWeight='600';
+  subtitle.style.margin='8px 0';
+  const list=document.createElement('div');list.id='bmList'+slot;list.className='hint';
+  list.textContent=it?'Premi Aggiorna per leggere i TG statici.':'Click Refresh to read static TGs.';
+  const input=document.createElement('input');input.type='number';input.min='1';input.max='999999';input.step='1';input.id='bmTg'+slot;input.placeholder='TG (1–999999)';input.className='pill';input.style.maxWidth='180px';
+  const controls=document.createElement('div');controls.style.display='flex';controls.style.flexWrap='wrap';controls.style.gap='8px';controls.style.marginTop='10px';
+  function button(label,fn){const b=document.createElement('button');b.type='button';b.className='btn secondary';b.textContent=label;b.addEventListener('click',fn);return b;}
+  controls.append(button(it?'Aggiorna':'Refresh',()=>bmRead(slot)),input,button(it?'Aggiungi TG':'Add TG',()=>bmAction(slot,'add')),button(it?'Elimina TG':'Delete TG',()=>bmAction(slot,'delete')),button(it?'Disconnetti dinamici':'Drop dynamic',()=>bmAction(slot,'drop_dynamic')));
+  box.append(title,subtitle,list,controls);grid.appendChild(box);
+ }
+ area.appendChild(grid);
+}
+async function bmRead(slot){
+ const list=$('bmList'+slot);if(!list)return;
+ list.textContent=lang==='it'?'Caricamento…':'Loading…';
+ try{
+  const result=await api('brandmeister/talkgroups?slot='+slot);
+  const values=[...new Set((result.talkgroups||[]).map(x=>Number(x.talkgroup)).filter(x=>Number.isInteger(x)&&x>0))].sort((a,b)=>a-b);
+  list.replaceChildren();
+  if(!values.length){list.textContent=lang==='it'?'Nessun TG statico.':'No static TGs.';return;}
+  for(const tg of values){const item=document.createElement('div');item.textContent='TG '+tg;item.style.padding='5px 0';list.appendChild(item);}
+ }catch(error){list.textContent=error.message;}
+}
+async function bmAction(slot,action){
+ const it=lang==='it';
+ const payload={slot,action};
+ if(action!=='drop_dynamic'){
+  const value=$('bmTg'+slot)?.value||'';
+  if(!/^[0-9]{1,6}$/.test(value)||Number(value)<1){status($('status'),it?'TG non valido.':'Invalid TG.',true);return;}
+  payload.tg=Number(value);
+ }
+ const description=action==='drop_dynamic'?(it?'Disconnettere tutti i TG dinamici su TS':'Disconnect all dynamic TGs on TS')+slot+'?':
+  (action==='add'?(it?'Aggiungere':'Add'):(it?'Eliminare':'Delete'))+' TG '+payload.tg+' — TS'+slot+'?';
+ if(!confirm(description))return;
+ try{
+  await post('brandmeister/action',payload,true);
+  status($('status'),it?'Operazione completata.':'Operation completed.');
+  if(action!=='drop_dynamic')await bmRead(slot);
+ }catch(error){status($('status'),error.message,true);}
+}
+
 function render(){updateBadgeView();document.documentElement.lang=lang;const t=tr();$('subtitle').textContent=t.subtitle;$('notice').textContent=t.notice;$('footer').textContent=t.footer;if(authenticated)renderPanel();else renderAuth()}
 async function api(path,options={}){const response=await fetch('/api/admin/'+path,{credentials:'same-origin',cache:'no-store',...options});let data={};try{data=await response.json()}catch(_){/* no JSON */}if(!response.ok)throw new Error(data.error||data.message||'HTTP '+response.status);return data}
 async function post(path,data,withCsrf=false){const headers={'Content-Type':'application/json'};if(withCsrf)headers['X-CSRF-Token']=csrf;return api(path,{method:'POST',headers,body:JSON.stringify(data)})}
-async function loadConfig(){try{const response=await fetch('/api/config',{credentials:'same-origin',cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);config=await response.json();const privateConfig=await api('config');config.paths=privateConfig.paths;config.deployment=privateConfig.deployment;const mqttResponse=await api('mqtt');config.mqtt=mqttResponse.mqtt;try{const telegramResponse=await api('telegram');config.telegram=telegramResponse.telegram}catch(e){console.warn('Telegram settings unavailable:',e.message);config.telegram={};}const preferred=config.dashboard?.language;if(preferred==='it'||preferred==='en'){lang=preferred;$('language').value=lang}}catch(e){console.info('Config unavailable:',e.message);config={}}}
+async function loadConfig(){try{const response=await fetch('/api/config',{credentials:'same-origin',cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);config=await response.json();const privateConfig=await api('config');config.paths=privateConfig.paths;config.deployment=privateConfig.deployment;try{const bmResponse=await api('brandmeister');config.brandmeister=bmResponse.brandmeister;config.brandmeisterLoaded=true;}catch(e){console.warn('BrandMeister settings unavailable:',e.message);config.brandmeister={device_id:'',api_key_set:false};config.brandmeisterLoaded=false;}const mqttResponse=await api('mqtt');config.mqtt=mqttResponse.mqtt;try{const telegramResponse=await api('telegram');config.telegram=telegramResponse.telegram}catch(e){console.warn('Telegram settings unavailable:',e.message);config.telegram={};}const preferred=config.dashboard?.language;if(preferred==='it'||preferred==='en'){lang=preferred;$('language').value=lang}}catch(e){console.info('Config unavailable:',e.message);config={}}}
 async function refreshSession(){const state=await api('session');configured=!!state.configured;authenticated=!!state.authenticated;csrf=state.csrf_token||'';if(authenticated){await loadConfig();renderPanel();await checkDashboardUpdates()}else showAuth(configured?'login':'setup');render()}
 $('updateBadge').addEventListener('click',()=>{
  active='updates';
@@ -517,7 +605,7 @@ $('logout').addEventListener('click',async()=>{try{await post('logout',{},true);
 $('saveConfig').addEventListener('click',async()=>{
  const section=active;
  if(section==='modes'||section==='security')return;
- if(section==='telegram'){await saveTelegram();return;}
+ if(section==='brandmeister'){await saveBrandmeister();return;}if(section==='telegram'){await saveTelegram();return;}
  const changes={};
  for(const input of $('fields').querySelectorAll('input[data-key],select[data-key]')){
   if(section==='mqtt'&&(['clear_password','clear_agent_password','agent_same_broker'].includes(input.dataset.key)))changes[input.dataset.key]=input.checked;
