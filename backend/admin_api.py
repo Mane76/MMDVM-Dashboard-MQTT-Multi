@@ -593,3 +593,153 @@ def admin_save_config():
         return _reply("Configuration save failed", 500)
 
     return jsonify({"ok": True, "message": "Configuration saved"})
+
+
+@admin_bp.route("/brandmeister", methods=["GET", "POST"])
+def admin_brandmeister():
+    """Configurazione BrandMeister privata del singolo ripetitore."""
+    failure = _require_auth()
+    if failure is not None:
+        return failure
+
+    from brandmeister_settings import public, save
+
+    if request.method == "GET":
+        try:
+            return jsonify({"ok": True, "brandmeister": public()})
+        except (OSError, ValueError):
+            return _reply("Unable to read BrandMeister settings", 500)
+
+    failure = _require_csrf()
+    if failure is not None:
+        return failure
+
+    if not _same_origin():
+        return _reply("Invalid request origin", 403)
+
+    if request.content_length is None or request.content_length > 8192:
+        return _reply("Invalid request size", 413)
+
+    data = _json()
+    if data is None:
+        return _reply("Invalid JSON data", 400)
+
+    try:
+        result = save(data)
+    except ValueError as exc:
+        return _reply(str(exc), 400)
+    except OSError:
+        current_app.logger.exception("BrandMeister settings save failed")
+        return _reply("Unable to save BrandMeister settings", 500)
+
+    return jsonify({"ok": True, "brandmeister": result})
+
+
+@admin_bp.route("/brandmeister/talkgroups", methods=["GET"])
+def admin_brandmeister_talkgroups():
+    """Read BrandMeister talkgroups for a selected time slot."""
+    failure = _require_auth()
+    if failure is not None:
+        return failure
+
+    slot = request.args.get("slot", "")
+
+    if slot not in ("1", "2"):
+        return _reply("Invalid time slot", 400)
+
+    from brandmeister_settings import load
+    from brandmeister_client import get_talkgroups, BrandMeisterError
+
+    try:
+        settings = load()
+
+        if not settings["device_id"] or not settings["api_key"]:
+            return _reply(
+                "BrandMeister credentials are not configured",
+                409,
+            )
+
+        talkgroups = get_talkgroups(
+            settings["device_id"],
+            settings["api_key"],
+        )
+
+        talkgroups = [
+            tg for tg in talkgroups
+            if isinstance(tg, dict)
+            and str(tg.get("slot", "")) == slot
+        ]
+
+        return jsonify({
+            "ok": True,
+            "slot": int(slot),
+            "talkgroups": talkgroups,
+        })
+
+    except BrandMeisterError:
+        current_app.logger.warning(
+            "BrandMeister talkgroup request failed"
+        )
+        return _reply("BrandMeister API unavailable", 502)
+
+    except (OSError, ValueError, KeyError):
+        current_app.logger.exception(
+            "BrandMeister configuration error"
+        )
+        return _reply("BrandMeister configuration error", 500)
+
+
+@admin_bp.route("/brandmeister/action", methods=["POST"])
+def admin_brandmeister_action():
+    """Perform a slot-scoped BrandMeister action, never a browser GET."""
+    failure = _require_auth()
+    if failure is not None:
+        return failure
+    failure = _require_csrf()
+    if failure is not None:
+        return failure
+    if not _same_origin():
+        return _reply("Invalid request origin", 403)
+    if request.content_length is None or request.content_length > 1024:
+        return _reply("Invalid request size", 413)
+    data = _json()
+    if data is None or set(data) - {"action", "slot", "tg"}:
+        return _reply("Invalid JSON data", 400)
+    action = data.get("action")
+    slot = data.get("slot")
+    if type(slot) is not int or slot not in (1, 2):
+        return _reply("Invalid time slot", 400)
+    if action not in ("add", "delete", "drop_dynamic"):
+        return _reply("Invalid action", 400)
+    if action == "drop_dynamic":
+        if set(data) != {"action", "slot"}:
+            return _reply("Invalid request", 400)
+    else:
+        if set(data) != {"action", "slot", "tg"}:
+            return _reply("Invalid request", 400)
+        tg = data.get("tg")
+        if type(tg) is not int or not 1 <= tg <= 999999:
+            return _reply("Invalid talkgroup", 400)
+    from brandmeister_settings import load
+    from brandmeister_client import (
+        BrandMeisterError, add_talkgroup, delete_talkgroup, drop_dynamic_groups
+    )
+    try:
+        settings = load()
+        device = settings.get("device_id", "")
+        key = settings.get("api_key", "")
+        if not device or not key:
+            return _reply("BrandMeister credentials are not configured", 409)
+        if action == "add":
+            add_talkgroup(device, key, slot, tg)
+        elif action == "delete":
+            delete_talkgroup(device, key, slot, tg)
+        else:
+            drop_dynamic_groups(device, key, slot)
+        return jsonify({"ok": True, "action": action, "slot": slot})
+    except (BrandMeisterError, ValueError):
+        current_app.logger.warning("BrandMeister action rejected")
+        return _reply("BrandMeister operation failed", 502)
+    except (OSError, KeyError):
+        current_app.logger.error("BrandMeister settings unavailable")
+        return _reply("BrandMeister configuration error", 500)

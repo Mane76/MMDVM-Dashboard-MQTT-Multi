@@ -66,6 +66,11 @@ def reconstruct(db=DB):
                     callsign += ' /' + str(head['src_ext']).strip().lstrip('/')
                 if mode == 'DMR':
                     destination = ('TG ' if head.get('group') == 'yes' else '') + str(head.get('dst_id', ''))
+                    if head.get('group') == 'yes':
+                        from parser import load_tg_labels
+                        tg = str(head.get('dst_id', '')).strip()
+                        ts = str(slot) if slot is not None else ''
+                        destination = load_tg_labels().get((ts, tg), destination)
                 else:
                     destination = str(head.get('dst_callsign') or head.get('reflector') or '').strip()
                     if mode == 'YSF':
