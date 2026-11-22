@@ -568,6 +568,17 @@ header {
 }
 
 /* SERVICES */
+/* IR3ZZO_RUNTIME_MODES_V1: compact, single-row mode labels */
+.services-card { gap: 12px; flex-wrap: nowrap; overflow-x: auto; }
+.runtime-modes-group { display: inline-flex; align-items: center; gap: 10px; flex: 0 0 auto; white-space: nowrap; }
+.runtime-modes-title { color: var(--muted); font-size: 10px; font-weight: bold; letter-spacing: 1.3px; }
+.runtime-mode { font-size: 11px; font-weight: 700; color: #e7bf77; }
+.runtime-mode.is-on { color: #48e69a; }
+.runtime-mode.is-off { color: #7c8998; }
+.runtime-mode.is-unknown { color: #e7bf77; }
+.runtime-mode-separator { display:block; height:17px; border-left:1px solid #405264; }
+.services-list { flex-wrap: nowrap; white-space: nowrap; }
+
 
 .services-card {
     background: rgba(16,26,37,.78);
@@ -945,6 +956,7 @@ tbody tr:last-child td { border-bottom: none; }
 </div>
 
 <div class="services-card">
+    <div class="runtime-modes-group"><span class="runtime-modes-title">MODI</span><span class="runtime-mode is-unknown" data-runtime-mode="dmr">DMR</span><span class="runtime-mode is-unknown" data-runtime-mode="ysf">YSF</span><span class="runtime-mode is-unknown" data-runtime-mode="dstar">D-STAR</span><span class="runtime-mode is-unknown" data-runtime-mode="fm">FM</span><span class="runtime-mode is-unknown" data-runtime-mode="p25">P25</span><span class="runtime-mode is-unknown" data-runtime-mode="nxdn">NXDN</span><span class="runtime-mode is-unknown" data-runtime-mode="m17">M17</span><span class="runtime-mode-separator" aria-hidden="true"></span></div>
     <div class="services-title" data-i18n="services">Servizi</div>
     <div class="services-list" id="servicesList">
         <span class="muted" data-i18n="loading">Caricamento...</span>
@@ -1231,6 +1243,31 @@ async function loadLive() {
     }
 }
 
+
+// IR3ZZO_RUNTIME_MODES_V1: states reflect native MQTT status, not gateway services.
+async function loadRuntimeModes() {
+    try {
+        const r = await fetch('/api/runtime-modes', {cache:'no-store'});
+        if (!r.ok) throw Error('Runtime modes HTTP ' + r.status);
+        const data = await r.json();
+        for (const el of document.querySelectorAll('[data-runtime-mode]')) {
+            const state = data.modes?.[el.dataset.runtimeMode] || 'unknown';
+            el.classList.toggle('is-on', state === 'conn' || state === 'disc');
+            el.classList.toggle('is-off', state === 'n/a');
+            el.classList.toggle('is-unknown', !['conn','disc','n/a'].includes(state));
+            el.title = state === 'conn' ? 'Abilitato / connesso' :
+                state === 'disc' ? 'Abilitato / rete disconnessa' :
+                state === 'n/a' ? 'Non disponibile (disabilitato o rete non configurata)' :
+                'Stato non verificabile';
+        }
+    } catch(e) {
+        for (const el of document.querySelectorAll('[data-runtime-mode]')) {
+            el.classList.remove('is-on','is-off'); el.classList.add('is-unknown');
+            el.title = 'Stato non verificabile';
+        }
+    }
+}
+
 async function loadServices() {
     try {
         const r = await fetch("/api/services",{cache:"no-store"});
@@ -1476,6 +1513,7 @@ async function startDashboard() {
     loadStatus();
     loadLive();
     loadServices();
+    loadRuntimeModes();
     loadHeard();
 }
 
@@ -1486,6 +1524,7 @@ setInterval(loadLive,1000);
 setInterval(loadHeard,5000);
 setInterval(loadStatus,10000);
 setInterval(loadServices,15000);
+setInterval(loadRuntimeModes,10000);
 </script>
 
 

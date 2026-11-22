@@ -38,6 +38,55 @@ Web dashboard for MMDVMHost amateur-radio repeaters, with MQTT event collection,
 
 ---
 
+
+## Novità v0.1.7 / What's New
+
+### Italiano
+
+- Visualizzazione in tempo reale delle modalità operative MMDVMHost.
+- Nuova indicazione MODI nella barra principale, accanto ai SERVIZI.
+- Stati delle modalità aggiornati anche nella pagina INFO.
+- Supporto al comando `status` del Remote Control MQTT.
+- Installer migliorato per utilizzare un broker Mosquitto già presente.
+
+**Configurazione MMDVMHost**
+
+Abilitare il Remote Control MQTT nella configurazione di MMDVMHost e verificare che il broker e i topic siano corretti.
+
+Esempio per IR3ZZO:
+
+- Comandi: `mmdvm/IR3ZZO/command`
+- Risposte: `mmdvm/IR3ZZO/response`
+- Comando utilizzato dalla dashboard: `status`
+
+La dashboard interroga periodicamente MMDVMHost senza modificare le modalità operative.
+
+Il Remote Control MQTT deve essere supportato dalla versione di MMDVMHost installata. La configurazione esatta dipende dalla versione utilizzata.
+
+### English
+
+- Real-time display of MMDVMHost operating modes.
+- New MODES indicators alongside SERVICES on the main dashboard.
+- Live operating-mode indicators on the INFO page.
+- Native MQTT Remote Control `status` support.
+- Improved installer support for existing Mosquitto brokers.
+
+**MMDVMHost configuration**
+
+Enable MQTT Remote Control in MMDVMHost and configure the appropriate broker and topics.
+
+Example for IR3ZZO:
+
+- Commands: `mmdvm/IR3ZZO/command`
+- Responses: `mmdvm/IR3ZZO/response`
+- Dashboard command: `status`
+
+The dashboard periodically requests status without changing the repeater's operating modes.
+
+MQTT Remote Control requires a compatible MMDVMHost version. Configuration details depend on the installed version.
+
+---
+
 ## Italiano
 
 ### Rilevamento automatico configurazione MMDVMHost

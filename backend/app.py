@@ -487,6 +487,13 @@ def local_radio_settings():
 
 
 
+# IR3ZZO_RUNTIME_MODES_V1
+@app.route('/api/runtime-modes')
+def api_runtime_modes():
+    import runtime_modes
+    return jsonify(runtime_modes.snapshot())
+
+
 @app.route("/api/config")
 def api_config():
     result = {

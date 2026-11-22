@@ -246,6 +246,13 @@ html,body {
 }
 
 /* MODI */
+/* IR3ZZO_RUNTIME_MODES_V1: same runtime colors as the main dashboard */
+.mode { color:#e7bf77; border-color:rgba(231,191,119,.25); background:rgba(231,191,119,.07); }
+.mode.fm { color:#e7bf77; border-color:rgba(231,191,119,.25); background:rgba(231,191,119,.07); }
+.mode.is-on, .mode.fm.is-on { color:#48e69a; border-color:rgba(72,230,154,.35); background:rgba(72,230,154,.07); }
+.mode.is-off, .mode.fm.is-off { color:#7c8998; border-color:rgba(124,137,152,.2); background:rgba(124,137,152,.07); }
+.mode.is-unknown, .mode.fm.is-unknown { color:#e7bf77; }
+
 
 .modes {
     display:flex;
@@ -868,22 +875,51 @@ async function loadAboutConfig() {
         }
 
         document.getElementById("modeDMR").style.display =
-            modes.dmr ? "" : "none";
+            "";
 
         document.getElementById("modeDSTAR").style.display =
-            modes.dstar ? "" : "none";
+            "";
 
         document.getElementById("modeYSF").style.display =
-            modes.ysf ? "" : "none";
+            "";
 
         document.getElementById("modeFM").style.display =
-            modes.fm ? "" : "none";
+            "";
 
     } catch (error) {
         console.error("About config:", error);
     }
 }
 
+
+
+// IR3ZZO_RUNTIME_MODES_V1: read-only live state, never inferred from MMDVM.ini.
+async function loadAboutRuntimeModes() {
+    const ids = {dmr:'modeDMR', dstar:'modeDSTAR', ysf:'modeYSF', fm:'modeFM'};
+    try {
+        const response = await fetch('/api/runtime-modes', {cache:'no-store'});
+        if (!response.ok) throw Error('Modes HTTP '+response.status);
+        const data = await response.json();
+        for (const [key,id] of Object.entries(ids)) {
+            const el = document.getElementById(id);
+            if (!el) continue;
+            el.style.display = '';
+            const state = data.modes?.[key] || 'unknown';
+            el.classList.toggle('is-on', ['conn','disc'].includes(state));
+            el.classList.toggle('is-off', state === 'n/a');
+            el.classList.toggle('is-unknown', !['conn','disc','n/a'].includes(state));
+            el.title = state === 'conn' ? 'Abilitato / connesso' :
+                state === 'disc' ? 'Abilitato / rete disconnessa' :
+                state === 'n/a' ? 'Non disponibile (disabilitato o rete non configurata)' :
+                'Stato non verificabile';
+        }
+    } catch(e) {
+        for (const id of Object.values(ids)) {
+            const el = document.getElementById(id);
+            if (el) {el.classList.remove('is-on','is-off'); el.classList.add('is-unknown');}
+        }
+    }
+}
 
 // Monitoraggio servizi systemd, aggiornamento ogni 10 secondi.
 async function loadSystemServices() {
@@ -1088,6 +1124,9 @@ loadAboutConfig().then(() => {
 });
 setInterval(loadSystemServices, 10000);
 setInterval(loadGatewayLinks, 10000);
+
+loadAboutRuntimeModes();
+setInterval(loadAboutRuntimeModes, 10000);
 </script>
 
 </body>

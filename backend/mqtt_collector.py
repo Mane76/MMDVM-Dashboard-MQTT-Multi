@@ -14,6 +14,7 @@ import paho.mqtt.client as mqtt
 from mqtt_store import connect, save, init_gateway_links, save_gateway_link, save_gateway_connection, save_dstar_link_history
 from mqtt_settings import SETTINGS, load
 import remote_agent
+import runtime_modes  # IR3ZZO_RUNTIME_MODES_V1
 from multi_mqtt import accept_event
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -43,6 +44,10 @@ def cleanup_old_events(db):
 
 def on_message(client, userdata, msg):
     try:
+        if runtime_modes.save_response(msg.topic, msg.payload, userdata.get('remote_base')):
+            return
+        if userdata.get('remote_base') and msg.topic == userdata['remote_base'] + '/response':
+            return
         gateway_topics = userdata.get("gateway_topics", {})
         gateway = gateway_topics.get(msg.topic)
         if gateway:
@@ -156,9 +161,11 @@ def main():
                             )
                         }
 
+                    remote_base = runtime_modes.topic_base(settings)
                     new_client = mqtt.Client(userdata={
                         "db": db,
                         "gateway_topics": gateway_topics,
+                        "remote_base": remote_base,
                     })
                     new_client.on_message = on_message
                     new_client.on_subscribe = lambda *args: logger.info("MQTT subscription active (pid=%s)", os.getpid())
@@ -180,6 +187,8 @@ def main():
                             for gateway_topic in subscribed_gateways:
                                 c.subscribe(gateway_topic, qos=0)
                                 logger.info("Subscribed gateway: %s", gateway_topic)
+                            if remote_base:
+                                c.subscribe(remote_base + '/response', qos=0)
                             if subscribed_agent:
                                 c.subscribe(subscribed_prefix + "/#", qos=1)
                                 logger.info("Subscribed Agent: %s/#", subscribed_prefix)
@@ -193,6 +202,7 @@ def main():
                         new_client.tls_set()
                     new_client.connect(settings["host"], int(settings["port"]), keepalive=60)
                     client = new_client
+                    last_remote_query = 0.0
                     current = signature
                     # Separate Agent broker, with independent MQTT connection and callbacks.
                     # Do not change or shadow mqtt_store.connect (SQLite).
@@ -240,6 +250,9 @@ def main():
                     agent_retry_at = time.monotonic() + 5
             if client is not None:
                 try:
+                    if remote_base and time.monotonic() - last_remote_query >= 15:
+                        last_remote_query = time.monotonic()
+                        client.publish(remote_base + '/command', 'status', qos=0)
                     rc = client.loop(timeout=1.0)
                     if rc != mqtt.MQTT_ERR_SUCCESS:
                         client.reconnect()
