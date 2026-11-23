@@ -87,6 +87,31 @@ MQTT Remote Control requires a compatible MMDVMHost version. Configuration detai
 
 ---
 
+
+## Novità v0.1.8 / What's New
+
+### Italiano
+
+- **Ultime trasmissioni:** visualizzazione delle sole trasmissioni del giorno corrente, dalle 00:00 (Europe/Rome).
+- **Traduzioni:** corretto il titolo Last Heard nella versione italiana.
+- **Log MMDVMHost via MQTT:** raccolta automatica dal topic `/log`.
+- **Filtro log:** esclusi i messaggi ripetitivi del comando remoto `status`.
+- **Rotazione log:** file giornalieri con conservazione di 7 giorni.
+- **Supporto Multi:** directory dei log indipendente per ciascun ripetitore.
+- Nessuna modifica alla conservazione SQLite delle trasmissioni, che rimane di 48 ore.
+
+### English
+
+- **Last Heard:** displays only transmissions from the current calendar day, starting at midnight (Europe/Rome).
+- **Translations:** corrected the Last Heard section title.
+- **MMDVMHost MQTT logs:** automatic collection from the `/log` topic.
+- **Log filtering:** repetitive remote `status` command messages are excluded.
+- **Log retention:** daily files retained for 7 days.
+- **Multi support:** separate log directories for each repeater.
+- SQLite transmission retention remains unchanged at 48 hours.
+
+---
+
 ## Italiano
 
 ### Rilevamento automatico configurazione MMDVMHost

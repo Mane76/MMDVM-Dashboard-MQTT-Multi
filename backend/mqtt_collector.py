@@ -16,6 +16,7 @@ from mqtt_settings import SETTINGS, load
 import remote_agent
 import runtime_modes  # IR3ZZO_RUNTIME_MODES_V1
 from multi_mqtt import accept_event
+from mmdvm_log_writer import save_log, cleanup_logs
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("mqtt-collector")
@@ -44,6 +45,9 @@ def cleanup_old_events(db):
 
 def on_message(client, userdata, msg):
     try:
+        if userdata.get("log_topic") and mqtt.topic_matches_sub(userdata["log_topic"], msg.topic):
+            save_log(msg.topic, msg.payload)
+            return
         if runtime_modes.save_response(msg.topic, msg.payload, userdata.get('remote_base')):
             return
         if userdata.get('remote_base') and msg.topic == userdata['remote_base'] + '/response':
@@ -96,6 +100,7 @@ def main():
                 if today != last_cleanup_date:
                     try:
                         cleanup_old_events(db)
+                        cleanup_logs()
                         last_cleanup_date = today
                     except Exception:
                         logger.exception("SQLite cleanup failed; will retry")
@@ -148,6 +153,7 @@ def main():
                 try:
                     # GATEWAY_TOPICS_V1
                     topic = settings["topic"]
+                    log_topic = topic[:-5] + "/log" if topic.endswith("/json") else None
                     gateway_topics = {}
                     if topic.endswith("/json") and "+" not in topic and "#" not in topic:
                         base = topic[:-5]
@@ -166,11 +172,13 @@ def main():
                         "db": db,
                         "gateway_topics": gateway_topics,
                         "remote_base": remote_base,
+                        "log_topic": log_topic,
                     })
                     new_client.on_message = on_message
                     new_client.on_subscribe = lambda *args: logger.info("MQTT subscription active (pid=%s)", os.getpid())
                     # COLLECTOR_CALLBACK_SNAPSHOT_V1
                     subscribed_topic = settings["topic"]
+                    subscribed_log_topic = log_topic
                     subscribed_gateways = tuple(gateway_topics)
                     subscribed_agent = agent_enabled and not agent_separate
                     subscribed_prefix = agent_prefix
@@ -178,12 +186,16 @@ def main():
                     def connected(
                         c, userdata, flags, rc,
                         subscribed_topic=subscribed_topic,
+                        subscribed_log_topic=subscribed_log_topic,
                         subscribed_gateways=subscribed_gateways,
                         subscribed_agent=subscribed_agent,
                         subscribed_prefix=subscribed_prefix
                     ):
                         if rc == 0:
                             c.subscribe(subscribed_topic, qos=0)
+                            if subscribed_log_topic:
+                                c.subscribe(subscribed_log_topic, qos=0)
+                                logger.info("Subscribed MMDVMHost logs: %s", subscribed_log_topic)
                             for gateway_topic in subscribed_gateways:
                                 c.subscribe(gateway_topic, qos=0)
                                 logger.info("Subscribed gateway: %s", gateway_topic)

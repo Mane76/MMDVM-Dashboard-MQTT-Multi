@@ -37,5 +37,6 @@
   "service_disabled": "Disabilitato",
   "service_unknown": "Sconosciuto",
   "no_services_detected": "Nessun servizio rilevato",
-  "services_error": "Impossibile leggere lo stato dei servizi"
+  "services_error": "Impossibile leggere lo stato dei servizi",
+  "last_heard": "Ultime trasmissioni"
 }

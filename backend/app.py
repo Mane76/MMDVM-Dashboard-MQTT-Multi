@@ -19,6 +19,7 @@ from parser import load_live, get_repeater_callsign, get_operator_name, get_dmr_
 from mqtt_sessions import reconstruct, dt
 from dstar_reflector import resolve_dstar_reflector_at
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 app = Flask(__name__)
 
@@ -587,6 +588,9 @@ def api_status():
 @app.route("/api/heard")
 def api_heard():
     history, active, fm = reconstruct()
+    # Last Heard: solo trasmissioni del giorno corrente, ora italiana.
+    today = datetime.now(ZoneInfo("Europe/Rome")).date().isoformat()
+    history = [event for event in history if event.get("date") == today]
     dmr_ids = get_dmr_ids()
 
     for event in history:
