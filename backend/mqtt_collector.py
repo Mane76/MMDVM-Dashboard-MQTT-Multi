@@ -1,3 +1,4 @@
+from mobile_control_health import update as mobile_heartbeat
 #!/usr/bin/env python3
 """Dashboard-only MQTT collector; reconnects when private settings change.
 
@@ -15,6 +16,11 @@ from mqtt_store import connect, save, init_gateway_links, save_gateway_link, sav
 from mqtt_settings import SETTINGS, load
 import remote_agent
 import runtime_modes  # IR3ZZO_RUNTIME_MODES_V1
+from mobile_control_settings import enabled as mobile_control_enabled
+from mobile_dispatcher import MobileDispatcher
+from mobile_engine import CommandEngine
+from mobile_agent_transport import AgentTransport
+from mobile_agent_engine import AgentCommandEngine
 from multi_mqtt import accept_event
 from mmdvm_log_writer import save_log, cleanup_logs
 
@@ -47,6 +53,14 @@ def on_message(client, userdata, msg):
     try:
         if userdata.get("log_topic") and mqtt.topic_matches_sub(userdata["log_topic"], msg.topic):
             save_log(msg.topic, msg.payload)
+            return
+        engine = userdata.get("mobile_engine")
+        remote_base = userdata.get("remote_base")
+        if engine is not None and remote_base and msg.topic == remote_base + "/response":
+            engine.on_response(msg.payload.decode("utf-8", "replace"))
+        # AGENT_TRANSPORT_ROUTING_V1: non interpretare le risposte Agent come eventi.
+        agent_transport = userdata.get('agent_transport')
+        if agent_transport is not None and agent_transport.on_message(msg.topic, msg.payload, msg.retain):
             return
         if runtime_modes.save_response(msg.topic, msg.payload, userdata.get('remote_base')):
             return
@@ -82,6 +96,37 @@ def on_message(client, userdata, msg):
 
 
 def main():
+    # Mobile Control: motore non bloccante, invio disabilitato.
+    # Il publisher viene collegato al client MQTT esistente.
+    # Nessun comando parte finché il dispatcher resta disabilitato.
+    mobile_transport = {"client": None, "base": None}
+
+    def mobile_publish(command):
+        client = mobile_transport["client"]
+        base = mobile_transport["base"]
+
+        if not mobile_dispatcher.enabled:
+            raise RuntimeError("Mobile Control disabled")
+
+        if client is None or not base or not client.is_connected():
+            raise RuntimeError("MQTT not connected")
+
+        info = client.publish(
+            base + "/command",
+            payload=command,
+            qos=1,
+            retain=False,
+        )
+
+        if info.rc != 0:
+            raise RuntimeError("MQTT publish failed: %s" % info.rc)
+
+    mobile_engine = CommandEngine(mobile_publish)
+    mobile_dispatcher = MobileDispatcher(
+        "disabled",
+        engine=mobile_engine
+    )
+    mobile_dispatcher.startup()
     db = connect()
     init_gateway_links(db)
     client = None
@@ -94,6 +139,7 @@ def main():
     try:
         while True:
             now = time.monotonic()
+            mobile_heartbeat()
             if now >= next_cleanup_check:
                 next_cleanup_check = now + CLEANUP_CHECK_INTERVAL
                 today = datetime.now().date()  # local date, midnight rollover
@@ -138,6 +184,19 @@ def main():
                 time.sleep(3)
                 continue
             if signature != current and time.monotonic() >= retry_at:
+                mobile_dispatcher.interrupt("MQTT connection reconfigured")
+
+                # I comandi ancora in attesa appartengono alla
+                # configurazione precedente: non eseguirli
+                # automaticamente dopo il cambio broker.
+                from mobile_queue import cancel_pending
+                cancelled = cancel_pending()
+                if cancelled:
+                    logger.warning(
+                        "Cancelled %s pending Mobile Control commands",
+                        cancelled,
+                    )
+
                 if agent_client is not None:
                     try:
                         agent_client.disconnect()
@@ -168,10 +227,14 @@ def main():
                         }
 
                     remote_base = runtime_modes.topic_base(settings)
+                    agent_transport = (AgentTransport(remote_agent.node_id(), agent_prefix)
+                                       if agent_enabled else None)
                     new_client = mqtt.Client(userdata={
                         "db": db,
                         "gateway_topics": gateway_topics,
                         "remote_base": remote_base,
+                        "mobile_engine": mobile_engine,
+                        "agent_transport": agent_transport if not agent_separate else None,
                         "log_topic": log_topic,
                     })
                     new_client.on_message = on_message
@@ -214,6 +277,28 @@ def main():
                         new_client.tls_set()
                     new_client.connect(settings["host"], int(settings["port"]), keepalive=60)
                     client = new_client
+                    # AGENT_DISPATCHER_WIRING_V1
+                    # Ogni worker Multi gestisce esclusivamente il proprio nodo.
+                    # Il client Agent viene scelto al momento dell'invio.
+                    # L'abilitazione viene aggiornata nel ciclo principale.
+                    mobile_dispatcher.enabled = False
+
+                    if agent_transport is not None:
+                        mobile_dispatcher.transport = "agent"
+                        mobile_dispatcher.engine = AgentCommandEngine(
+                            agent_transport,
+                            lambda: (
+                                agent_client if agent_separate else client
+                            ),
+                        )
+                        logger.info(
+                            "Agent command transport prepared for node %s",
+                            remote_agent.node_id(),
+                        )
+                    else:
+                        mobile_dispatcher.transport = "disabled"
+                        mobile_dispatcher.engine = mobile_engine
+
                     last_remote_query = 0.0
                     current = signature
                     # Separate Agent broker, with independent MQTT connection and callbacks.
@@ -226,6 +311,8 @@ def main():
                         agent_tls = bool(settings.get("agent_tls", False))
                         def agent_message(c, userdata, msg):
                             try:
+                                if agent_transport is not None and agent_transport.on_message(msg.topic, msg.payload, msg.retain):
+                                    return
                                 remote_agent.ingest(msg.topic, msg.payload)
                             except Exception:
                                 logger.exception("Failed to ingest Agent message")
@@ -262,7 +349,27 @@ def main():
                     agent_retry_at = time.monotonic() + 5
             if client is not None:
                 try:
-                    if remote_base and time.monotonic() - last_remote_query >= 15:
+                    mobile_transport["client"] = client
+                    mobile_transport["base"] = remote_base
+                    # Un solo aggiornamento del motore attivo.
+                    if mobile_dispatcher.engine is not None:
+                        mobile_dispatcher.engine.tick()
+
+                    # Rilettura dinamica della configurazione per nodo.
+                    # Un'operazione già avviata deve poter terminare.
+                    mobile_dispatcher.enabled = (
+                        mobile_control_enabled()
+                        and agent_transport is not None
+                        and agent_enabled
+                    )
+
+                    # Non avviare comandi mentre potrebbe essere
+                    # ancora in arrivo una risposta al polling.
+                    if time.monotonic() - last_remote_query >= 3:
+                        finished_operation = mobile_dispatcher.process_next()
+                        if finished_operation is not None:
+                            last_remote_query = time.monotonic()
+                    if remote_base and not mobile_engine.busy and time.monotonic() - last_remote_query >= 15:
                         last_remote_query = time.monotonic()
                         client.publish(remote_base + '/command', 'status', qos=0)
                     rc = client.loop(timeout=1.0)

@@ -69,7 +69,16 @@ def snapshot():
     config = cache.get('config', {})
     online = status.get('payload', {}).get('online') is True and fresh(status) and fresh(telemetry)
     config_ok = online and telemetry.get('payload', {}).get('config_ok') is True and fresh(config)
+    status_payload = status.get('payload', {})
+    control_ready = (
+        online
+        and status_payload.get('control_ready') is True
+        and type(status_payload.get('control_protocol_version')) is int
+        and status_payload['control_protocol_version'] == 1
+    )
+
     return {'online': online, 'config_ok': config_ok,
+            'control_ready': control_ready,
             'telemetry': telemetry.get('payload', {}) if online else {},
             'config': config.get('payload', {}) if config_ok else {},
             'last_seen': telemetry.get('payload', {}).get('collected_at')}

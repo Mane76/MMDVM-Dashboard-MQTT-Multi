@@ -3,5 +3,8 @@
   "topic_prefix": "mmdvm/N0CALL/agent/v1",
   "interval_seconds": 10,
   "mmdvm_ini": "/etc/MMDVM.ini",
-  "broker_settings_file": "/opt/mmdvm-agent/broker.json"
+  "broker_settings_file": "/opt/mmdvm-agent/broker.json",
+  "control_enabled": true,
+  "mmdvm_topic_base": "mmdvm/N0CALL",
+  "mmdvm_broker_settings_file": "/opt/mmdvm-agent/mmdvm-broker.json"
 }

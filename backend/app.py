@@ -23,9 +23,24 @@ from zoneinfo import ZoneInfo
 
 app = Flask(__name__)
 
-from admin_api import admin_bp, configure_admin_app
-configure_admin_app(app)
+from admin_api import admin_bp
+from mobile_control import mobile_control_bp
 app.register_blueprint(admin_bp)
+app.register_blueprint(mobile_control_bp)
+
+# Chiave persistente per le sessioni Flask.
+import secrets
+from pathlib import Path
+
+_secret_file = Path("/opt/mmdvm-dashboard-multi/config/session-secret")
+if not _secret_file.is_file():
+    _secret_file.write_text(secrets.token_hex(32) + "\n")
+    _secret_file.chmod(0o600)
+
+app.secret_key = _secret_file.read_text().strip()
+MMDVM_SESSION_SECRET_FILE = str(_secret_file)
+
+
 
 
 def read_repeater_info():
@@ -417,7 +432,20 @@ def api_gateway_links():
 
 def read_mmdvm_modes():
     if remote_agent.enabled():
-        return remote_agent.modes()
+        from runtime_modes import snapshot as runtime_snapshot
+        configured = remote_agent.modes()
+        live = runtime_snapshot()
+        result = {}
+        for mode in ("dmr", "dstar", "ysf", "fm", "p25", "nxdn", "m17"):
+            state = live.get("modes", {}).get(mode, "unknown") if live.get("available") else "unknown"
+            result[mode] = (
+                True if state in ("conn", "disc")
+                else False if state == "n/a"
+                else None
+            )
+        result["pocsag"] = configured.get("pocsag", False)
+        result["ax25"] = configured.get("ax25", False)
+        return result
     """Legge le modalità abilitate direttamente da MMDVM.ini."""
     modes = {
         "dmr": False,
@@ -492,7 +520,23 @@ def local_radio_settings():
 @app.route('/api/runtime-modes')
 def api_runtime_modes():
     import runtime_modes
-    return jsonify(runtime_modes.snapshot())
+    import remote_agent
+    from mobile_mode_state import snapshot as mobile_modes_snapshot
+
+    state = runtime_modes.snapshot()
+    agent = remote_agent.snapshot() if remote_agent.enabled() else {}
+    saved = mobile_modes_snapshot()
+
+    if agent.get("online") and saved["available"]:
+        state = dict(state)
+        state["modes"] = {
+            **state.get("modes", {}),
+            **saved["modes"]
+        }
+        state["available"] = True
+        state["source"] = "agent"
+
+    return jsonify(state)
 
 
 @app.route("/api/config")

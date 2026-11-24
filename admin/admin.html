@@ -28,6 +28,146 @@
 .telegram-test-heading{display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:18px;margin:0!important}
 #telegramTestButton{width:auto;display:inline-block;margin:0;font-weight:normal;white-space:normal}
 @media(max-width:700px){.telegram-grid{grid-template-columns:1fr}.telegram-card{padding:14px}}
+
+/* MOBILE CONTROL - compact buttons, dashboard theme */
+.mode-control-actions {
+ display:flex;
+ flex-direction:row;
+ align-items:center;
+ justify-content:flex-start;
+ gap:8px;
+ margin-top:8px;
+ flex-wrap:nowrap;
+}
+.mode-control-actions button.btn {
+ flex:0 0 auto;
+ width:auto;
+ min-width:105px;
+ min-height:32px;
+ height:34px;
+ padding:5px 16px;
+ font-size:12px;
+ font-weight:700;
+ border-radius:7px;
+ box-shadow:none;
+}
+.mode-control-actions button.enable-mode {
+ background:#204b65 !important;
+ border:1px solid #397b9e !important;
+ color:#d9efff !important;
+}
+.mode-control-actions button.disable-mode {
+ background:#34495e !important;
+ border:1px solid #526b80 !important;
+ color:#e0eaf2 !important;
+}
+.mode-control-actions button.enable-mode:hover:not(:disabled) {
+ background:#28617e !important;
+}
+.mode-control-actions button.disable-mode:hover:not(:disabled) {
+ background:#435c73 !important;
+}
+.mode-control-actions button:disabled {
+ opacity:.42;
+ cursor:not-allowed;
+}
+.mode-control-result {
+ grid-column:1/-1;
+ font-size:12px;
+ color:var(--muted);
+ margin-top:5px;
+}
+
+
+/* MOBILE CONTROL INLINE ROW V1 */
+#fields .field:has(.mode-control-actions) {
+ display:grid;
+ grid-template-columns:58px minmax(90px,1fr) auto;
+ align-items:center;
+ column-gap:10px;
+ row-gap:5px;
+}
+
+#fields .field:has(.mode-control-actions) label {
+ grid-column:1;
+ grid-row:1;
+ margin:0;
+ white-space:nowrap;
+}
+
+#fields .field:has(.mode-control-actions) input {
+ grid-column:2;
+ grid-row:1;
+ width:100%;
+ min-width:0;
+ padding:8px 12px;
+ height:38px;
+}
+
+#fields .mode-control-actions {
+ grid-column:3;
+ grid-row:1;
+ display:flex;
+ flex-direction:row;
+ flex-wrap:nowrap;
+ gap:6px;
+ margin:0;
+}
+
+#fields .mode-control-actions button.btn {
+ width:auto;
+ min-width:88px;
+ height:36px;
+ min-height:36px;
+ padding:5px 10px;
+ font-size:11px;
+ white-space:nowrap;
+}
+
+#fields .mode-control-result {
+ grid-column:1/-1;
+ grid-row:2;
+ margin:0;
+ font-size:11px;
+}
+
+@media(max-width:650px) {
+ #fields .field:has(.mode-control-actions) {
+  grid-template-columns:48px minmax(55px,1fr) auto;
+  column-gap:6px;
+ }
+ #fields .mode-control-actions button.btn {
+  min-width:72px;
+  padding:4px 6px;
+  font-size:10px;
+ }
+}
+
+
+/* MOBILE CONTROL ALIGN DISABLED MODES V1 */
+#fields:has(.mode-control-actions)
+.field:not(:has(.mode-control-actions)) {
+ display:grid;
+ grid-template-columns:58px minmax(90px,1fr) auto;
+ align-items:center;
+ column-gap:10px;
+ row-gap:5px;
+}
+
+#fields:has(.mode-control-actions)
+.field:not(:has(.mode-control-actions)) label {
+ grid-column:1;
+ grid-row:1;
+}
+
+#fields:has(.mode-control-actions)
+.field:not(:has(.mode-control-actions)) input {
+ grid-column:2;
+ grid-row:1;
+ width:100%;
+ min-width:0;
+}
+
 </style>
 </head>
 <body>
@@ -70,8 +210,8 @@ const sections=[
 const fieldIt={mode:'Utilizza Agent MQTT remoto',mmdvm_ini:'File configurazione MMDVMHost (percorso completo)',node_id:'Node ID Agent',agent_topic_prefix:'Prefisso topic Agent',title:'Titolo dashboard',language:'Lingua predefinita',callsign:'Nominativo',location:'Località',city:'Città',locator:'Locator',altitude:'Altitudine',tx_frequency:'Frequenza TX',rx_frequency:'Frequenza RX',shift:'Shift',power:'Potenza',ctcss:'CTCSS',dmr_color_code:'Color Code DMR',dmr:'DMR',dstar:'D-Star',ysf:'YSF',fm:'FM',p25:'P25',nxdn:'NXDN',m17:'M17',pocsag:'POCSAG',ax25:'AX.25',radio:'Radio',modem:'Modem',computer:'Computer',antenna:'Antenna',organization:'Organizzazione',organization_description:'Descrizione organizzazione',maintainers:'Responsabili',collaboration:'Collaborazioni',banner:'Banner',repeater:'Foto ripetitore',logo:'Logo',dstar_dashboard:'Dashboard D-Star',dstar_dashboard_label:'Nome link D-Star',mmdvmhost_url:'URL MMDVMHost',mmdvmhost_label:'Nome link MMDVMHost',dmrgateway_url:'URL DMRGateway',dmrgateway_label:'Nome link DMRGateway',ysfgateway_url:'URL YSFGateway',ysfgateway_label:'Nome link YSFGateway',ircddbgateway_url:'URL ircDDBGateway',ircddbgateway_label:'Nome link ircDDBGateway',m17gateway_url:'URL M17Gateway',m17gateway_label:'Nome link M17Gateway',aprsgateway_url:'URL APRSGateway',aprsgateway_label:'Nome link APRSGateway',mmdvm_dir:'Directory MMDVM',host:'Broker MQTT',port:'Porta',topic:'Topic',username:'Utente MQTT',password:'Nuova password MQTT',tls:'TLS',clear_password:'Elimina password salvata',agent_same_broker:'Agent: stesso broker degli eventi MMDVM',agent_host:'Broker Agent MQTT',agent_port:'Porta Agent MQTT',agent_username:'Utente Agent MQTT',agent_password:'Nuova password Agent MQTT',agent_tls:'TLS Agent',clear_agent_password:'Elimina password Agent salvata',mmdvm_file:'File MMDVM.ini',mmdvm_logs:'Log MMDVM',dmr_ids:'Database DMR ID',tg_list_dir:'Directory TalkGroup',tg_list_file:'File TalkGroup'};
 const fieldEn={mode:'Use remote MQTT Agent',mmdvm_ini:'MMDVMHost configuration file (full path)',node_id:'Agent node ID',agent_topic_prefix:'Agent topic prefix',title:'Dashboard title',language:'Default language',callsign:'Callsign',location:'Location',city:'City',locator:'Locator',altitude:'Altitude',tx_frequency:'TX frequency',rx_frequency:'RX frequency',shift:'Shift',power:'Power',ctcss:'CTCSS',dmr_color_code:'DMR color code',dmr:'DMR',dstar:'D-Star',ysf:'YSF',fm:'FM',p25:'P25',nxdn:'NXDN',m17:'M17',pocsag:'POCSAG',ax25:'AX.25',radio:'Radio',modem:'Modem',computer:'Computer',antenna:'Antenna',organization:'Organization',organization_description:'Organization description',maintainers:'Maintainers',collaboration:'Collaborations',banner:'Banner',repeater:'Repeater photo',logo:'Logo',dstar_dashboard:'D-Star dashboard',dstar_dashboard_label:'D-Star link label',mmdvmhost_url:'MMDVMHost URL',mmdvmhost_label:'MMDVMHost link label',dmrgateway_url:'DMRGateway URL',dmrgateway_label:'DMRGateway link label',ysfgateway_url:'YSFGateway URL',ysfgateway_label:'YSFGateway link label',ircddbgateway_url:'ircDDBGateway URL',ircddbgateway_label:'ircDDBGateway link label',m17gateway_url:'M17Gateway URL',m17gateway_label:'M17Gateway link label',aprsgateway_url:'APRSGateway URL',aprsgateway_label:'APRSGateway link label',mmdvm_dir:'MMDVM directory',host:'MQTT broker',port:'Port',topic:'Topic',username:'MQTT username',password:'New MQTT password',tls:'TLS',clear_password:'Clear saved password',agent_same_broker:'Agent: use same broker as MMDVM events',agent_host:'Agent MQTT broker',agent_port:'Agent MQTT port',agent_username:'Agent MQTT username',agent_password:'New Agent MQTT password',agent_tls:'Agent TLS',clear_agent_password:'Clear saved Agent password',mmdvm_file:'MMDVM.ini file',mmdvm_logs:'MMDVM logs',dmr_ids:'DMR ID database',tg_list_dir:'TalkGroup directory',tg_list_file:'TalkGroup file'};
 const dict={
-it:{subtitle:'Configurazione del sistema',preview:'AMMINISTRAZIONE',notice:'Le impostazioni della dashboard sono modificabili. I parametri radio letti automaticamente da MMDVM.ini o dall’Agent MQTT sono contrassegnati con 🔒 e non modificabili. I valori non disponibili possono essere inseriti manualmente. Le modalità radio sono in sola lettura.',footer:'Area amministrativa MMDVM Dashboard · Connessione HTTPS richiesta',setupTitle:'Prima configurazione',setupHint:'Inserisci il token di attivazione conservato sul server e scegli le credenziali amministrative. Il token verrà utilizzato una sola volta.',loginTitle:'Accesso amministratore',loginHint:'Accedi con le credenziali scelte durante la prima configurazione.',setup:'Crea amministratore',login:'Accedi',logout:'Esci',token:'Token di attivazione',username:'Nome utente',password:'Password',confirm:'Conferma password',newUsername:'Nome utente nuovo (o attuale)',currentPassword:'Password attuale',newPassword:'Nuova password (lascia vuoto per non cambiarla)',confirmPassword:'Conferma nuova password',saveCredentials:'Aggiorna credenziali',saveConfig:'Salva modifiche',configSaved:'Configurazione salvata correttamente.',ready:'Dati caricati da /api/config.',offline:'Impossibile caricare i dati della dashboard.',credentialsChanged:'Credenziali aggiornate. Effettua nuovamente il login.',created:'Amministratore creato. Ora effettua il login.',mismatch:'Le password non coincidono.',loading:'Caricamento…',error:'Operazione non riuscita',yes:'Attivo',no:'Disattivo',unknown:'Non disponibile',sections:{deployment:'Collegamento MMDVM',dashboard:'Generale',repeater:'Ripetitore',modes:'Modalità radio',hardware:'Hardware',station:'Stazione e organizzazione',images:'Immagini',links:'Collegamenti',paths:'Percorsi dei file',brandmeister:'Talkgroup BrandMeister',mqtt:'MQTT',telegram:'Telegram Bot',security:'Sicurezza e accesso',updates:'Aggiornamenti'},hints:{deployment:'Seleziona Agent remoto oppure MMDVM.ini locale.',dashboard:'Titolo e lingua predefinita della dashboard.',repeater:'Dati identificativi e frequenze del ripetitore.',modes:'Stato effettivo letto da MMDVM.ini. Non modificabile da questa pagina.',hardware:'Apparati e antenna installati.',station:'Organizzazione, responsabili e collaborazioni.',images:'Percorsi delle immagini utilizzate dalla dashboard.',links:'Collegamenti a servizi esterni.',paths:'Percorsi dei file utilizzati dal backend.',mqtt:'Connessione al broker MQTT esistente. La password vuota resta invariata.',telegram:'Configura le notifiche delle trasmissioni radio inviate tramite Telegram.',updates:'Verifica la versione installata e gestisci gli aggiornamenti.',security:'Per cambiare il nome utente, inserisci quello desiderato e la password attuale. La nuova password è facoltativa.'},fields:fieldIt},
-en:{subtitle:'System configuration',preview:'ADMINISTRATION',notice:'Dashboard settings can be edited. Radio parameters automatically read from MMDVM.ini or the MQTT Agent are marked with 🔒 and cannot be edited. Unavailable values can be entered manually. Radio modes are read-only.',footer:'MMDVM Dashboard administration · HTTPS connection required',setupTitle:'Initial setup',setupHint:'Enter the activation token stored on the server and choose administrator credentials. The token can only be used once.',loginTitle:'Administrator login',loginHint:'Sign in using the credentials created during initial setup.',setup:'Create administrator',login:'Sign in',logout:'Log out',token:'Activation token',username:'Username',password:'Password',confirm:'Confirm password',newUsername:'New (or current) username',currentPassword:'Current password',newPassword:'New password (leave blank to keep it)',confirmPassword:'Confirm new password',saveCredentials:'Update credentials',saveConfig:'Save changes',configSaved:'Configuration saved successfully.',ready:'Data loaded from /api/config.',offline:'Unable to load dashboard data.',credentialsChanged:'Credentials updated. Please sign in again.',created:'Administrator created. Please sign in.',mismatch:'Passwords do not match.',loading:'Loading…',error:'Operation failed',yes:'Enabled',no:'Disabled',unknown:'Unavailable',sections:{deployment:'MMDVM connection',dashboard:'General',repeater:'Repeater',modes:'Radio modes',hardware:'Hardware',station:'Station and organization',images:'Images',links:'Links',paths:'File paths',brandmeister:'BrandMeister talkgroups',mqtt:'MQTT',telegram:'Telegram Bot',security:'Security and access',updates:'Updates'},hints:{deployment:'Select remote Agent or local MMDVM.ini.',dashboard:'Dashboard title and default language.',repeater:'Repeater identity and frequencies.',modes:'Actual mode status read from MMDVM.ini. Not editable here.',hardware:'Installed equipment and antenna.',station:'Organization, maintainers and collaborations.',images:'Image paths used by the dashboard.',links:'Links to external services.',paths:'File paths used by the backend.',mqtt:'Connection to the existing MQTT broker. Blank password keeps the saved value.',telegram:'Configure radio transmission notifications sent through Telegram.',updates:'Check the installed version and manage updates.',security:'To change the username, enter the desired name and your current password. A new password is optional.'},fields:fieldEn}
+it:{subtitle:'Configurazione del sistema',preview:'AMMINISTRAZIONE',notice:'Le impostazioni della dashboard sono modificabili. I parametri radio letti automaticamente da MMDVM.ini o dall’Agent MQTT sono contrassegnati con 🔒 e non modificabili. I valori non disponibili possono essere inseriti manualmente. Le modalità radio sono in sola lettura.',footer:'Area amministrativa MMDVM Dashboard · Connessione HTTPS richiesta',setupTitle:'Prima configurazione',setupHint:'Inserisci il token di attivazione conservato sul server e scegli le credenziali amministrative. Il token verrà utilizzato una sola volta.',loginTitle:'Accesso amministratore',loginHint:'Accedi con le credenziali scelte durante la prima configurazione.',setup:'Crea amministratore',login:'Accedi',logout:'Esci',token:'Token di attivazione',username:'Nome utente',password:'Password',confirm:'Conferma password',newUsername:'Nome utente nuovo (o attuale)',currentPassword:'Password attuale',newPassword:'Nuova password (lascia vuoto per non cambiarla)',confirmPassword:'Conferma nuova password',saveCredentials:'Aggiorna credenziali',saveConfig:'Salva modifiche',configSaved:'Configurazione salvata correttamente.',ready:'Dati caricati da /api/config.',offline:'Impossibile caricare i dati della dashboard.',credentialsChanged:'Credenziali aggiornate. Effettua nuovamente il login.',created:'Amministratore creato. Ora effettua il login.',mismatch:'Le password non coincidono.',loading:'Caricamento…',error:'Operazione non riuscita',yes:'Attivo',no:'Disattivo',unknown:'Non disponibile',sections:{deployment:'Collegamento MMDVM',dashboard:'Generale',repeater:'Ripetitore',modes:'Modalità radio',hardware:'Hardware',station:'Stazione e organizzazione',images:'Immagini',links:'Collegamenti',paths:'Percorsi dei file',brandmeister:'Talkgroup BrandMeister',mqtt:'MQTT',telegram:'Telegram Bot',security:'Sicurezza e accesso',updates:'Aggiornamenti'},hints:{deployment:'Seleziona Agent remoto oppure MMDVM.ini locale.',dashboard:'Titolo e lingua predefinita della dashboard.',repeater:'Dati identificativi e frequenze del ripetitore.',modes:'Stato operativo delle modalità radio aggiornato tramite MQTT. I comandi possono modificare il funzionamento del ripetitore.',hardware:'Apparati e antenna installati.',station:'Organizzazione, responsabili e collaborazioni.',images:'Percorsi delle immagini utilizzate dalla dashboard.',links:'Collegamenti a servizi esterni.',paths:'Percorsi dei file utilizzati dal backend.',mqtt:'Connessione al broker MQTT esistente. La password vuota resta invariata.',telegram:'Configura le notifiche delle trasmissioni radio inviate tramite Telegram.',updates:'Verifica la versione installata e gestisci gli aggiornamenti.',security:'Per cambiare il nome utente, inserisci quello desiderato e la password attuale. La nuova password è facoltativa.'},fields:fieldIt},
+en:{subtitle:'System configuration',preview:'ADMINISTRATION',notice:'Dashboard settings can be edited. Radio parameters automatically read from MMDVM.ini or the MQTT Agent are marked with 🔒 and cannot be edited. Unavailable values can be entered manually. Radio modes are read-only.',footer:'MMDVM Dashboard administration · HTTPS connection required',setupTitle:'Initial setup',setupHint:'Enter the activation token stored on the server and choose administrator credentials. The token can only be used once.',loginTitle:'Administrator login',loginHint:'Sign in using the credentials created during initial setup.',setup:'Create administrator',login:'Sign in',logout:'Log out',token:'Activation token',username:'Username',password:'Password',confirm:'Confirm password',newUsername:'New (or current) username',currentPassword:'Current password',newPassword:'New password (leave blank to keep it)',confirmPassword:'Confirm new password',saveCredentials:'Update credentials',saveConfig:'Save changes',configSaved:'Configuration saved successfully.',ready:'Data loaded from /api/config.',offline:'Unable to load dashboard data.',credentialsChanged:'Credentials updated. Please sign in again.',created:'Administrator created. Please sign in.',mismatch:'Passwords do not match.',loading:'Loading…',error:'Operation failed',yes:'Enabled',no:'Disabled',unknown:'Unavailable',sections:{deployment:'MMDVM connection',dashboard:'General',repeater:'Repeater',modes:'Radio modes',hardware:'Hardware',station:'Station and organization',images:'Images',links:'Links',paths:'File paths',brandmeister:'BrandMeister talkgroups',mqtt:'MQTT',telegram:'Telegram Bot',security:'Security and access',updates:'Updates'},hints:{deployment:'Select remote Agent or local MMDVM.ini.',dashboard:'Dashboard title and default language.',repeater:'Repeater identity and frequencies.',modes:'Radio mode status updated via MQTT. Commands can change repeater operation.',hardware:'Installed equipment and antenna.',station:'Organization, maintainers and collaborations.',images:'Image paths used by the dashboard.',links:'Links to external services.',paths:'File paths used by the backend.',mqtt:'Connection to the existing MQTT broker. Blank password keeps the saved value.',telegram:'Configure radio transmission notifications sent through Telegram.',updates:'Check the installed version and manage updates.',security:'To change the username, enter the desired name and your current password. A new password is optional.'},fields:fieldEn}
 };
 const $=id=>document.getElementById(id);
 let lang='it',active='repeater',config={},configured=false,authenticated=false,csrf='',authMode='login';
@@ -90,6 +230,388 @@ function updateDeploymentFields(){
   if(input)input.disabled=remote?(key==='mmdvm_ini'):(key!=='mmdvm_ini');
  }
 }
+
+const mobileModeKeys = ['dmr','dstar','ysf','fm','p25','nxdn','m17'];
+let mobileControlBusy = false;
+
+async function mobileApi(path, options={}) {
+ const response = await fetch('/api/mobile-control/'+path, {
+  credentials:'same-origin',
+  cache:'no-store',
+  ...options
+ });
+ const data = await response.json().catch(()=>({}));
+ if (!response.ok) throw new Error(data.error || 'HTTP '+response.status);
+ return data;
+}
+
+async function mobileWaitOperation(id, output) {
+ for (let i=0; i<35; i++) {
+  const data = await mobileApi('operations/'+id);
+  const op = data.operation;
+  output.textContent = (op.status || 'running') +
+   (op.result ? ' — '+op.result : '');
+
+  if (['completed','failed','interrupted','cancelled'].includes(op.status)) {
+   if (op.status === 'completed') {
+    output.style.color = 'var(--green)';
+   } else {
+    output.style.color = '#ff9f9f';
+   }
+   return op;
+  }
+  await new Promise(resolve=>setTimeout(resolve,1000));
+ }
+ throw new Error('Timeout: verifica lo stato dell’operazione');
+}
+
+
+function renderSpecialCommands() {
+ const container = document.createElement('section');
+ container.style.cssText =
+  'grid-column:1 / -1;width:100%;box-sizing:border-box;' +
+  'margin-top:20px;padding:0;border:0;background:transparent;';
+
+ const heading = document.createElement('h2');
+ heading.textContent = lang==='it' ? 'Comandi speciali' : 'Special commands';
+ heading.style.margin = '0 0 14px';
+
+ const description = document.createElement('p');
+ description.textContent = lang==='it'
+  ? 'Disponibili agli utenti autenticati. Possono interferire con l’attività radio. Lo stato status non identifica il modo RF corrente.'
+  : 'Available to authenticated users. These commands may interfere with radio activity. Status does not identify the current RF mode.';
+ description.style.color = '#b9d2eb';
+
+ const actions = document.createElement('div');
+ actions.style.cssText = 'display:flex;flex-wrap:wrap;gap:7px;margin:12px 0';
+
+ const result = document.createElement('div');
+ result.setAttribute('aria-live','polite');
+ result.style.cssText = 'margin-top:14px;color:#b9d2eb';
+
+ const commands = [
+  ['MODE IDLE','mode idle'],
+  ['FORZA D-STAR','mode d-star'],
+  ['FORZA DMR','mode dmr'],
+  ['FORZA YSF','mode ysf'],
+  ['FORZA FM','mode fm'],
+  ['FORZA P25','mode p25'],
+  ['FORZA NXDN','mode nxdn'],
+  ['FORZA M17','mode m17'],
+  ['MODE LOCKOUT','mode lockout'],
+  ['RELOAD','reload']
+ ];
+
+ const buttons = [];
+
+ for (const [label,command] of commands) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = label;
+  button.className = 'btn';
+  const colors = command === 'mode idle'
+   ? ['#216e46','#39a76b']
+   : command === 'mode lockout'
+   ? ['#8b3040','#d75a69']
+   : command === 'reload'
+   ? ['#895020','#d58a37']
+   : ['#214e79','#4085bd'];
+
+  button.style.cssText =
+   'background:'+colors[0]+';border:1px solid '+colors[1]+';' +
+   'color:white;padding:7px 12px;border-radius:7px;' +
+   'font-size:12px;font-weight:600;line-height:18px;' +
+   'min-height:34px;box-sizing:border-box;';
+
+  button.addEventListener('click', async () => {
+   if (mobileControlBusy) return;
+
+   const warning = command==='reload'
+    ? '\nATTENZIONE: può interrompere temporaneamente il servizio.'
+    : command==='mode lockout'
+     ? '\nATTENZIONE: può bloccare l’attività radio.'
+     : '\nPuò modificare il funzionamento del ripetitore.';
+
+   if (!confirm('Confermi '+label+' su IR3ZZO?'+warning))
+    return;
+
+   mobileControlBusy = true;
+   document.querySelectorAll('.mode-control-actions button')
+    .forEach(b=>b.disabled=true);
+   buttons.forEach(b=>b.disabled=true);
+
+   result.style.color='#b9d2eb';
+   result.textContent='Invio '+command+'…';
+
+   try {
+    const queued = await mobileApi('commands',{
+     method:'POST',
+     headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({command})
+    });
+
+    if (!queued.id) throw new Error('Operation ID missing');
+
+    const operation = await mobileWaitOperation(queued.id,result);
+
+    if (operation.status!=='completed')
+     throw new Error(operation.result||operation.status);
+
+    result.style.color='var(--green)';
+    result.textContent='Comando '+command+' completato.';
+
+   } catch(error) {
+    result.style.color='#ff9f9f';
+    result.textContent='Errore: '+error.message;
+   } finally {
+    mobileControlBusy=false;
+    buttons.forEach(b=>b.disabled=false);
+    if (active==='modes') renderModeControlsState();
+   }
+  });
+
+  buttons.push(button);
+  actions.appendChild(button);
+ }
+
+ const note = document.createElement('p');
+ note.style.cssText='color:#b9d2eb;margin:14px 0 0';
+ note.textContent =
+  'I comandi MODE forzano una modalità operativa, ma STATUS non conferma il modo RF corrente. RELOAD può interrompere temporaneamente il servizio.';
+
+
+ // CW_CONTROL_V1
+ const cwSection = document.createElement('div');
+ cwSection.style.cssText =
+  'grid-column:1 / -1;margin-top:22px;padding-top:16px;' +
+  'border-top:1px solid #344d69';
+
+ const cwTitle = document.createElement('h3');
+ cwTitle.textContent = lang==='it' ? 'Trasmissione CW' : 'CW transmission';
+
+ const cwRow = document.createElement('div');
+ cwRow.style.cssText =
+  'display:flex;flex-wrap:wrap;align-items:center;gap:8px';
+
+ const cwInput = document.createElement('input');
+ cwInput.type = 'text';
+ cwInput.maxLength = 60;
+ cwInput.placeholder = 'Messaggio CW (max 60 caratteri)';
+ cwInput.setAttribute('aria-label','Messaggio CW');
+ cwInput.style.cssText =
+  'flex:1 1 260px;min-width:0;text-transform:uppercase';
+
+ const cwButton = document.createElement('button');
+ cwButton.type = 'button';
+ cwButton.className = 'btn';
+ cwButton.textContent = 'INVIA CW';
+ cwButton.style.cssText =
+  'background:#214e79;border:1px solid #4085bd;color:white;' +
+  'padding:7px 12px;border-radius:7px;font-size:12px;' +
+  'font-weight:600;line-height:18px;min-height:34px';
+
+ const cwResult = document.createElement('div');
+ cwResult.setAttribute('aria-live','polite');
+ cwResult.style.marginTop = '10px';
+
+ const cwNote = document.createElement('p');
+ cwNote.style.color = 'var(--muted)';
+ cwNote.textContent =
+  'Il comando porta il modem in IDLE. La conferma MQTT non garantisce l’effettiva trasmissione.';
+
+ cwButton.addEventListener('click', async()=>{
+  if(mobileControlBusy) return;
+
+  const message = cwInput.value.trim().toUpperCase();
+
+  if(!/^[A-Z0-9 /.-]{1,60}$/.test(message)){
+   cwResult.textContent =
+    'Usa da 1 a 60 caratteri: lettere, numeri, spazi, / . -';
+   return;
+  }
+
+  if(!confirm(
+   'Confermi la trasmissione CW su IR3ZZO?\n\n'+
+   message+'\n\nIl modem passerà in IDLE.'
+  )) return;
+
+  mobileControlBusy=true;
+  cwButton.disabled=true;
+  buttons.forEach(b=>b.disabled=true);
+  document.querySelectorAll('.mode-control-actions button')
+   .forEach(b=>b.disabled=true);
+
+  cwResult.style.color='var(--muted)';
+  cwResult.textContent='Invio comando CW…';
+
+  try {
+   const queued=await mobileApi('commands',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({command:'cw '+message})
+   });
+
+   if(!queued.id) throw new Error('Operation ID missing');
+
+   const op=await mobileWaitOperation(queued.id,cwResult);
+   if(op.status!=='completed')
+    throw new Error(op.result||op.status);
+
+   cwResult.style.color='var(--green)';
+   cwResult.textContent=
+    'Comando CW accettato. Trasmissione RF non verificata.';
+  } catch(error) {
+   cwResult.style.color='#ff9f9f';
+   cwResult.textContent='Errore: '+error.message;
+  } finally {
+   mobileControlBusy=false;
+   cwButton.disabled=false;
+   buttons.forEach(b=>b.disabled=false);
+   if(active==='modes') renderModeControlsState();
+  }
+ });
+
+ cwRow.append(cwInput,cwButton);
+ cwSection.append(cwTitle,cwRow,cwNote,cwResult);
+
+ container.append(heading,description,actions,note,result);
+ container.appendChild(cwSection);
+ document.getElementById('fields').appendChild(container);
+}
+
+function renderModeControlsState() {
+ mobileApi('capabilities').then(data=>{
+  for (const mode of mobileModeKeys) {
+   const input=document.querySelector('#fields [data-key="'+mode+'"]');
+   if (!input) continue;
+   const state=data.modes?.[mode]||'unknown';
+   const enabled=state==='conn'||state==='disc';
+   const disabled=state==='n/a';
+   const wrap=input.closest('.field');
+   const enable=wrap.querySelector('[data-action="enable"]');
+   const disable=wrap.querySelector('[data-action="disable"]');
+   input.value=enabled?tr().yes:disabled?tr().no:tr().unknown;
+   if(enable)enable.disabled=mobileControlBusy||!data.state_available||!disabled;
+   if(disable)disable.disabled=mobileControlBusy||!data.state_available||!enabled;
+  }
+ }).catch(error=>console.error('Mobile Control:',error));
+}
+
+function renderModeControls() {
+ for (const mode of mobileModeKeys) {
+  const input = document.querySelector('#fields [data-key="'+mode+'"]');
+  if (!input) continue;
+
+  const wrap = input.closest('.field');
+  if (!wrap || wrap.querySelector('.mode-control-actions')) continue;
+
+  const actions = document.createElement('div');
+  actions.className = 'mode-control-actions';
+
+  const result = document.createElement('div');
+  result.className = 'mode-control-result';
+  result.setAttribute('aria-live','polite');
+
+  for (const action of ['enable','disable']) {
+   const button = document.createElement('button');
+   button.type = 'button';
+   button.className = 'btn '+(action==='enable'?'enable-mode':'disable-mode');
+   button.textContent = action==='enable'
+    ? (lang==='it'?'ABILITA':'ENABLE')
+    : (lang==='it'?'DISABILITA':'DISABLE');
+
+   button.addEventListener('click', async()=>{
+    const label = mode.toUpperCase();
+    const command = action+' '+mode;
+
+    if (!confirm(lang==='it'
+      ? 'Confermi il comando "'+command.toUpperCase()+'" su IR3ZZO?'
+      : 'Confirm "'+command.toUpperCase()+'" on IR3ZZO?')) return;
+
+    if (mobileControlBusy) return;
+
+    mobileControlBusy = true;
+    const buttons = document.querySelectorAll('.mode-control-actions button');
+    buttons.forEach(b=>b.disabled=true);
+    result.style.color='var(--muted)';
+    result.textContent=lang==='it'?'Invio comando…':'Sending command…';
+
+    try {
+     const queued = await mobileApi('commands',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({command})
+     });
+
+     if (!queued.id) throw new Error('Operation ID missing');
+
+     const operation = await mobileWaitOperation(queued.id,result);
+
+     if (operation.status !== 'completed') {
+      throw new Error(operation.result || operation.status);
+     }
+
+     result.textContent = lang==='it'
+      ? 'Comando completato. Aggiornamento stato…'
+      : 'Command completed. Refreshing status…';
+
+     const caps = await mobileApi('capabilities');
+     const state = caps.modes?.[mode] || 'unknown';
+     const active = state === 'conn' || state === 'disc';
+     const disabled = state === 'n/a';
+     input.closest('.field').querySelector('[data-action="enable"]').disabled = active;
+     input.closest('.field').querySelector('[data-action="disable"]').disabled = disabled;
+     input.value = state === 'conn' || state === 'disc'
+      ? (lang==='it'?'Attivo':'Enabled')
+      : state === 'n/a'
+       ? (lang==='it'?'Disattivo':'Disabled')
+       : (lang==='it'?'Non disponibile':'Unavailable');
+
+     result.textContent = lang==='it'
+      ? 'Operazione completata. Stato: '+state
+      : 'Operation completed. State: '+state;
+
+    } catch(error) {
+     result.style.color='#ff9f9f';
+     result.textContent='Errore: '+error.message;
+    } finally {
+     mobileControlBusy=false;
+     if (active === 'modes') renderPanel();
+    }
+   });
+
+   button.dataset.action = action;
+   actions.appendChild(button);
+  }
+
+  wrap.append(actions,result);
+ }
+
+ renderSpecialCommands();
+
+ // Legge lo stato reale delle modalità dall'API.
+ mobileApi('capabilities').then(data => {
+  for (const mode of mobileModeKeys) {
+   const input = document.querySelector('#fields [data-key="'+mode+'"]');
+   if (!input) continue;
+
+   const state = data.modes?.[mode] || 'unknown';
+   const active = state === 'conn' || state === 'disc';
+   const disabled = state === 'n/a';
+
+   const enable = input.closest('.field')
+    .querySelector('[data-action="enable"]');
+   const disable = input.closest('.field')
+    .querySelector('[data-action="disable"]');
+
+   input.value = active ? tr().yes : disabled ? tr().no : tr().unknown;
+   enable.disabled = mobileControlBusy || !data.state_available || active || (!active && !disabled);
+   disable.disabled = mobileControlBusy || !data.state_available || disabled || (!active && !disabled);
+  }
+ }).catch(error => console.error('Mobile Control:',error));
+}
+
+
 function renderPanel(){const t=tr();$('authbox').classList.add('hidden');$('shell').classList.remove('hidden');$('logout').classList.remove('hidden');$('logout').textContent=t.logout;$('modeBadge').textContent=t.preview;$('navigation').replaceChildren();for(const section of sections){const b=document.createElement('button');b.type='button';b.className='nav'+(active===section.id?' active':'');b.textContent=t.sections[section.id];b.addEventListener('click',()=>{active=section.id;renderPanel()});$('navigation').appendChild(b)}$('sectionTitle').textContent=t.sections[active];$('sectionHint').textContent=t.hints[active]||(active==='brandmeister'?(lang==='it'?'Gestione TG statici e dinamici per slot BrandMeister.':'Manage static and dynamic TGs for each BrandMeister slot.'):'');$('fields').replaceChildren();$('fields').classList.toggle('telegram-layout',active==='telegram');$('configActions').classList.toggle('hidden',active==='modes'||active==='security'||active==='updates');$('saveConfig').textContent=t.saveConfig;$('securityArea').classList.toggle('hidden',active!=='security');$('updatesArea').classList.toggle('hidden',active!=='updates');if(active==='updates'){
   renderUpdates();
   status($('status'),'');
@@ -148,7 +670,7 @@ if(active==='images'){
   wrap.appendChild(hint);
  }
 }
-$('fields').appendChild(wrap)}if(active==='deployment')updateDeploymentFields();if(active==='mqtt')toggleAdminAgentFields();status($('status'),Object.keys(config).length?t.ready:t.offline,!Object.keys(config).length)}
+$('fields').appendChild(wrap)}if(active==='deployment')updateDeploymentFields();if(active==='mqtt')toggleAdminAgentFields();if(active==='modes')renderModeControls();status($('status'),Object.keys(config).length?t.ready:t.offline,!Object.keys(config).length)}
 
 
 function toggleAdminAgentFields(){

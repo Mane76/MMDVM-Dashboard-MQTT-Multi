@@ -16,9 +16,82 @@ Web dashboard for MMDVMHost amateur-radio repeaters, with MQTT event collection,
 
 
 
+## Novità v0.1.9 / What's New
+
+**Dashboard Multi v0.1.9 — Agent MQTT v0.2.0**
+
+- Controllo remoto delle modalità MMDVM tramite MQTT.
+- Gestione dei comandi remoti dalla Dashboard.
+- Supporto a broker MQTT separati per telemetria e comandi.
+- Nuovi moduli Agent e aggiornamento degli installer.
+- Remote MMDVM mode control via MQTT.
+- Remote command management from the Dashboard.
+- Separate MQTT brokers for telemetry and commands.
+- Updated Agent modules and installation scripts.
+
+
+
+### Aggiornamento importante — Controllo remoto MMDVM
+
+> **ATTENZIONE — INTERVENTO MANUALE SUL RIPETITORE**
+>
+> Questa release introduce il controllo remoto delle modalità MMDVM tramite MQTT.
+> L'aggiornamento dalla pagina Admin aggiorna la Dashboard e include i nuovi
+> moduli Python, ma **non aggiorna automaticamente l'Agent sul ripetitore**.
+
+### Procedura per installazioni esistenti
+
+1. Aggiornare la Dashboard dalla pagina Admin.
+2. Prima dell'aggiornamento dell'Agent, preparare le configurazioni sul ripetitore.
+3. Aggiornare `/opt/mmdvm-agent/agent.json` con:
+   - `control_enabled: true`
+   - `mmdvm_topic_base: mmdvm/NOMINATIVO`
+   - `mmdvm_broker_settings_file: /opt/mmdvm-agent/mmdvm-broker.json`
+4. Configurare `mmdvm-broker.json` con host, porta, username, password e TLS
+   del broker MQTT utilizzato per i comandi. Può essere diverso dal broker
+   utilizzato per la telemetria.
+5. Eseguire `update-agent.sh` per aggiornare i moduli Python dell'Agent.
+6. Abilitare **`Remote=1`** nella sezione corretta di `MMDVM.ini`.
+7. Riavviare MMDVMHost e `mmdvm-agent.service`.
+8. Verificare la comunicazione MQTT e il funzionamento dei comandi.
+
+**Nota:** il solo aggiornamento della Dashboard non abilita il controllo remoto.
+Non è necessario installare nuovi servizi systemd per il Mobile Control.
+
+---
+
+## Important Update — MMDVM Remote Control
+
+> **WARNING — MANUAL REPEATER UPDATE REQUIRED**
+>
+> This release introduces MQTT-based remote control of MMDVM operating modes.
+> Updating through the Admin page updates the Dashboard and includes the new
+> Python modules, but **does not automatically update the repeater Agent**.
+
+### Procedure for existing installations
+
+1. Update the Dashboard through the Admin page.
+2. Prepare the repeater configuration before updating the Agent.
+3. Update `/opt/mmdvm-agent/agent.json` with:
+   - `control_enabled: true`
+   - `mmdvm_topic_base: mmdvm/CALLSIGN`
+   - `mmdvm_broker_settings_file: /opt/mmdvm-agent/mmdvm-broker.json`
+4. Configure `mmdvm-broker.json` with the MQTT command broker host, port,
+   username, password and TLS settings. This broker may differ from the
+   telemetry broker.
+5. Run `update-agent.sh` to update the Agent Python modules.
+6. Enable **`Remote=1`** in the appropriate section of `MMDVM.ini`.
+7. Restart MMDVMHost and `mmdvm-agent.service`.
+8. Verify MQTT connectivity and remote command operation.
+
+**Note:** updating the Dashboard alone does not enable remote control.
+No additional systemd services are required for Mobile Control.
+
+---
+
 ## Novità v0.1.6 / What's New
 
-### Italiano 🇮🇹
+## Italiano 🇮🇹
 
 - Gestione dei TalkGroup statici BrandMeister tramite API.
 - Pannelli indipendenti TS1 e TS2 per la gestione dei TG.
@@ -206,7 +279,7 @@ Eseguire come `root`:
 apt update && apt install -y wget unzip
 mkdir -p /root/mmdvm-agent-installer
 cd /root/mmdvm-agent-installer
-wget -O MMDVM-MQTT-Agent.zip https://github.com/Mauro-go/MMDVM-Dashboard-MQTT/raw/refs/heads/main/MMDVM-MQTT-Agent.zip
+wget -O MMDVM-MQTT-Agent.zip https://raw.githubusercontent.com/Mauro-go/MMDVM-Dashboard-MQTT-Multi/main/MMDVM-MQTT-Agent.zip
 unzip MMDVM-MQTT-Agent.zip
 bash install.sh
 ```
@@ -436,7 +509,7 @@ Run as root:
 apt update && apt install -y wget unzip
 mkdir -p /root/mmdvm-agent-installer
 cd /root/mmdvm-agent-installer
-wget -O MMDVM-MQTT-Agent.zip https://github.com/Mauro-go/MMDVM-Dashboard-MQTT/raw/refs/heads/main/MMDVM-MQTT-Agent.zip
+wget -O MMDVM-MQTT-Agent.zip https://raw.githubusercontent.com/Mauro-go/MMDVM-Dashboard-MQTT-Multi/main/MMDVM-MQTT-Agent.zip
 unzip MMDVM-MQTT-Agent.zip
 bash install.sh
 ```

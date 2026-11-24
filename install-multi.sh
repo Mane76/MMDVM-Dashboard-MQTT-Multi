@@ -128,13 +128,17 @@ read -r -p 'Confermi installazione? Scrivi INSTALLA: ' CONFIRM
 export DEBIAN_FRONTEND=noninteractive
 info 'Installazione dipendenze'
 apt-get update
-PACKAGES=(openssl ca-certificates curl python3 python3-flask python3-werkzeug python3-psutil python3-paho-mqtt)
+PACKAGES=(openssl ca-certificates curl rsync python3 python3-flask python3-werkzeug python3-psutil python3-paho-mqtt)
 if [[ "$MQTT_MODE" == new ]]; then PACKAGES+=(mosquitto mosquitto-clients); fi
 if [[ "$WEB_MODE" == apache_new ]]; then PACKAGES+=(apache2); fi
 apt-get install -y "${PACKAGES[@]}"
 id "$USER_NAME" >/dev/null 2>&1 || useradd --system --home "$APP" --shell /usr/sbin/nologin "$USER_NAME"
 install -d -o root -g root -m 0755 "$APP"
-for dir in backend frontend admin; do cp -a "$SRC/$dir" "$APP/$dir"; done
+# Copia i sorgenti senza includere dati runtime o file temporanei.
+for dir in backend frontend admin; do
+  mkdir -p "$APP/$dir"
+  rsync -a     --exclude='__pycache__/'     --exclude='*.pyc'     --exclude='*.db'     --exclude='*.sqlite3'     --exclude='*.bak*'     "$SRC/$dir/" "$APP/$dir/"
+done
 install -o root -g root -m 0644 "$SRC/VERSION" "$APP/VERSION"
 install -d -o root -g root -m 0755 "$APP/scripts"
 for f in "$SRC"/scripts/update_*.py; do install -o root -g root -m 0644 "$f" "$APP/scripts/$(basename "$f")"; done

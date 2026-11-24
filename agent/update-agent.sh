@@ -27,7 +27,11 @@ fi
 
 echo "===== VERIFICA PACCHETTO ====="
 
-for f in VERSION agent.py detect-mmdvm-config.py; do
+for f in VERSION agent.py detect-mmdvm-config.py \
+         gateway_monitor.py mobile_agent_executor.py \
+         mobile_agent_guard.py mobile_agent_protocol.py \
+         mobile_agent_receiver.py mobile_agent_worker.py \
+         mobile_commands.py mobile_mqtt.py; do
     [ -f "$SOURCE_DIR/$f" ] || {
         fail "File mancante: $f"
         exit 1
@@ -63,8 +67,37 @@ if not (app / "agent.json").is_file():
 if not (app / "broker.json").is_file():
     raise SystemExit("Configurazione broker.json assente")
 
+import json
+
+settings = json.loads((app / "agent.json").read_text())
+
+required = (
+    "control_enabled",
+    "mmdvm_topic_base",
+    "mmdvm_broker_settings_file",
+)
+
+missing = [key for key in required if not settings.get(key)]
+
+if missing:
+    raise SystemExit(
+        "Configurazione controllo remoto incompleta: "
+        + ", ".join(missing)
+    )
+
+if settings["control_enabled"] is not True:
+    raise SystemExit("Controllo remoto non abilitato in agent.json")
+
+control_broker = Path(settings["mmdvm_broker_settings_file"])
+
+if not control_broker.is_file():
+    raise SystemExit(
+        "Broker controllo remoto non trovato: " + str(control_broker)
+    )
+
 print("Versione pacchetto:", version)
 print("Configurazioni esistenti: OK")
+print("Controllo remoto: OK")
 PY
 
 [ -f "$APP/agent.py" ] || {
@@ -80,9 +113,20 @@ PY
 echo
 echo "===== PREPARAZIONE CANDIDATO ====="
 
-install -m 600 "$SOURCE_DIR/agent.py" "$STAGING/agent.py"
-install -m 644 "$SOURCE_DIR/detect-mmdvm-config.py" \
-    "$STAGING/detect-mmdvm-config.py"
+# Prepara tutti i moduli Python dell'Agent.
+for source in "$SOURCE_DIR"/*.py; do
+    install -m 644 "$source" "$STAGING/$(basename "$source")"
+done
+
+# Controlla la sintassi di tutti i moduli prima di fermare il servizio.
+python3 - "$STAGING" <<'CHECK'
+import ast
+import pathlib
+import sys
+
+for path in pathlib.Path(sys.argv[1]).glob("*.py"):
+    ast.parse(path.read_text(), filename=str(path))
+CHECK
 
 python3 -B "$STAGING/agent.py" \
     --config "$APP/agent.json" --dry-run \
@@ -112,14 +156,21 @@ echo "Backup creato: $BACKUP"
 echo
 echo "===== INSTALLAZIONE ====="
 
+# Memorizza i nuovi moduli, per rimuoverli in caso di rollback.
+NEW_MODULES=()
+for source in "$STAGING"/*.py; do
+    name="$(basename "$source")"
+    if [[ ! -e "$APP/$name" ]]; then
+        NEW_MODULES+=("$APP/$name")
+    fi
+done
+
 systemctl stop "$SERVICE"
 
-install -o root -g root -m 644 \
-    "$STAGING/agent.py" "$APP/agent.py"
-
-install -o root -g root -m 644 \
-    "$STAGING/detect-mmdvm-config.py" \
-    "$APP/detect-mmdvm-config.py"
+# Aggiorna tutti i moduli senza toccare i file JSON.
+for source in "$STAGING"/*.py; do
+    install -o root -g root -m 644 "$source" "$APP/$(basename "$source")"
+done
 
 echo
 echo "===== VERIFICA E RIAVVIO ====="
@@ -138,6 +189,11 @@ else
     systemctl stop "$SERVICE" || true
 
     tar -xzf "$BACKUP/installation.tar.gz" -C /
+
+    # Elimina soltanto i moduli introdotti dall'aggiornamento fallito.
+    if (( ${#NEW_MODULES[@]} )); then
+        rm -f -- "${NEW_MODULES[@]}"
+    fi
 
     systemctl daemon-reload
     systemctl restart "$SERVICE" || true

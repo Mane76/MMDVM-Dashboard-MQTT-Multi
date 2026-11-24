@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 import paho.mqtt.client as mqtt
 import psutil
+from gateway_monitor import GatewayMonitor
 
 VERSION = '0.1.0'
 UNITS = ['mmdvmhost', 'dmrgateway', 'ysfgateway', 'dstargateway', 'ircddbgateway', 'p25gateway', 'nxdngateway', 'm17gateway', 'aprsgateway']
@@ -103,11 +104,54 @@ def make_client(settings, broker, suffix=''):
     client.max_queued_messages_set(20)
     return client
 
+
+def setup_mobile_control(settings, broker, client):
+    """Prepara il controllo remoto, disabilitato per sicurezza."""
+    from pathlib import Path
+    from mobile_agent_receiver import AgentControlReceiver
+    from mobile_agent_worker import AgentControlWorker
+    from mobile_agent_executor import MMDVMExecutor
+
+    node_id = settings["node_id"]
+    prefix = settings["topic_prefix"]
+
+    database = Path("/var/lib/mmdvm-agent/mobile-control.sqlite3")
+
+    executor = MMDVMExecutor(
+        broker,
+        settings.get("mmdvm_topic_base", "mmdvm/" + node_id),
+    )
+
+    worker = AgentControlWorker(executor)
+    worker.start(
+        client.publish,
+        prefix.rstrip("/") + "/control/response",
+    )
+
+    receiver = AgentControlReceiver(
+        node_id,
+        prefix,
+        database,
+        worker=worker,
+    )
+
+    receiver.enabled = False
+
+    return receiver, worker
+
+
 def run(settings, broker, dry_run=False):
+    gateway_monitor = GatewayMonitor(
+        dmr_config=Path(settings['mmdvm_ini']).with_name('DMRGateway.ini')
+    )
+
     if dry_run:
         psutil.cpu_percent(interval=None)
         time.sleep(0.2)
-        print(json.dumps(envelope(settings, {'config': radio_config(settings), **telemetry()}), indent=2))
+        values = telemetry()
+        values['config'] = radio_config(settings)
+        values['gateways'] = gateway_monitor.collect_all()
+        print(json.dumps(envelope(settings, values), indent=2, ensure_ascii=False))
         return
     stopped = threading.Event()
     connected = threading.Event()
@@ -115,10 +159,39 @@ def run(settings, broker, dry_run=False):
         signal.signal(sig, lambda *_: stopped.set())
     client = make_client(settings, broker)
     prefix = settings['topic_prefix']
+
+    # Il controllo è opzionale e non modifica la telemetria.
+    control_receiver = None
+    control_worker = None
+
+    if settings.get('control_enabled', False):
+        if not settings.get('mmdvm_broker_settings_file'):
+            raise ValueError(
+                'Control requires mmdvm_broker_settings_file'
+            )
+        if not settings.get('mmdvm_topic_base'):
+            raise ValueError(
+                'Control requires mmdvm_topic_base'
+            )
+
+        control_broker = json.loads(
+            Path(settings['mmdvm_broker_settings_file']).read_text()
+        )
+        control_receiver, control_worker = setup_mobile_control(
+            settings, control_broker, client
+        )
+        control_receiver.enabled = True
+
     client.will_set(prefix + '/status', json.dumps({'schema_version': 1,
         'node_id': settings['node_id'], 'online': False, 'reason': 'connection_lost'}), qos=1, retain=True)
     def on_connect(c, userdata, flags, rc):
         if rc == 0:
+            if control_receiver is not None:
+                result, _ = c.subscribe(
+                    control_receiver.topics['command'], qos=1
+                )
+                if result != mqtt.MQTT_ERR_SUCCESS:
+                    logging.error('Control subscription failed')
             connected.set()
             logging.info('Broker connected')
         else:
@@ -127,8 +200,16 @@ def run(settings, broker, dry_run=False):
         connected.clear()
         if rc:
             logging.warning('Broker disconnected, code %s', rc)
+    def on_message(c, userdata, msg):
+        if control_receiver is not None:
+            try:
+                control_receiver.on_message(c, msg)
+            except Exception:
+                logging.exception('Control message processing failed')
+
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
+    client.on_message = on_message
     def publish(name, values):
         result = client.publish(prefix + '/' + name, json.dumps(envelope(settings, values)), qos=1, retain=True)
         if result.rc != mqtt.MQTT_ERR_SUCCESS:
@@ -148,6 +229,16 @@ def run(settings, broker, dry_run=False):
                 continue
             try:
                 values = telemetry()
+
+                try:
+                    values['gateways'] = gateway_monitor.collect_all()
+                except Exception as exc:
+                    values['gateways'] = {}
+                    logging.warning(
+                        'Gateway monitoring failed: %s',
+                        type(exc).__name__
+                    )
+
                 try:
                     config = radio_config(settings)
                     publish('config', config)
@@ -157,7 +248,12 @@ def run(settings, broker, dry_run=False):
                     values['config_error'] = type(exc).__name__
                     logging.warning('Configuration read failed: %s', type(exc).__name__)
                 publish('telemetry', dict(stale_after_seconds=max(30, settings['interval_seconds'] * 3), **values))
-                publish('status', {'online': True, 'stale_after_seconds': max(30, settings['interval_seconds'] * 3)})
+                publish('status', {
+                    'online': True,
+                    'stale_after_seconds': max(30, settings['interval_seconds'] * 3),
+                    'control_ready': bool(settings.get('control_enabled', False) and control_worker is not None),
+                    'control_protocol_version': 1
+                })
             except Exception as exc:
                 logging.warning('Collection/publication failed: %s', type(exc).__name__)
             stopped.wait(settings['interval_seconds'])
@@ -169,6 +265,8 @@ def run(settings, broker, dry_run=False):
                 pass
         client.disconnect()
         client.loop_stop()
+        if control_worker is not None:
+            control_worker.stop()
         logging.info('Agent stopped')
 
 if __name__ == '__main__':

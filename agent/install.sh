@@ -14,6 +14,7 @@ say() { if [[ $LANGUAGE == en ]]; then printf '%s\n' "$2"; else printf '%s\n' "$
 fail() { say "ERRORE: $1" "ERROR: $2" >&2; exit 1; }
 cleanup() {
   [[ -z $SECRET_FILE ]] || rm -f -- "$SECRET_FILE"
+  [[ -z ${MMDVM_SECRET_FILE:-} ]] || rm -f -- "$MMDVM_SECRET_FILE"
 }
 trap cleanup EXIT
 
@@ -47,7 +48,10 @@ confirm() {
 }
 
 [[ $EUID -eq 0 ]] || fail 'eseguire come root.' 'run as root.'
-[[ -f $SOURCE_DIR/agent.py ]] || fail 'agent.py non trovato nella directory dello script.' 'agent.py not found beside installer.'
+# Verifica che il pacchetto contenga tutti i moduli necessari.
+for module in agent.py gateway_monitor.py   mobile_agent_executor.py mobile_agent_guard.py   mobile_agent_protocol.py mobile_agent_receiver.py   mobile_agent_worker.py mobile_commands.py mobile_mqtt.py; do
+  [[ -f "$SOURCE_DIR/$module" ]] || fail     "modulo mancante: $module" "missing module: $module"
+done
 [[ -f $SOURCE_DIR/$SERVICE ]] || fail 'file di servizio systemd mancante.' 'systemd service file missing.'
 command -v apt-get >/dev/null || fail 'richiesto Debian/Ubuntu con apt-get.' 'Debian/Ubuntu with apt-get required.'
 command -v systemctl >/dev/null || fail 'systemd non disponibile.' 'systemd is not available.'
@@ -58,7 +62,7 @@ case "$language_choice" in 2) LANGUAGE=en ;; ''|1) LANGUAGE=it ;; *) fail 'lingu
 say '=== Installazione MMDVM MQTT Agent ===' '=== MMDVM MQTT Agent installation ==='
 
 # All preflight checks precede package changes.
-for f in "$APP/agent.py" "$APP/agent.json" "$APP/broker.json" "/etc/systemd/system/$SERVICE"; do
+for f in "$APP/agent.py" "$APP/agent.json" "$APP/broker.json" "$APP/mmdvm-broker.json" "/etc/systemd/system/$SERVICE"; do
   [[ ! -e $f ]] || fail "file già esistente: $f. Nessuna sovrascrittura." "file already exists: $f. Refusing to overwrite."
 done
 
@@ -129,6 +133,39 @@ case "${TLS_REPLY,,}" in
   *) fail 'Risposta TLS non valida.' 'Invalid TLS answer.' ;;
 esac
 
+# Broker dedicato ai comandi MMDVM
+say '=== Broker MQTT per controllo remoto MMDVM ===' '=== MQTT broker for MMDVM remote control ==='
+
+while :; do
+  ask MMDVM_MQTT_HOST 'IP o hostname broker MMDVM' 'MMDVM broker IP or hostname' "$MQTT_HOST"
+  [[ -n $MMDVM_MQTT_HOST ]] && break
+done
+
+while :; do
+  ask MMDVM_MQTT_PORT 'Porta broker MMDVM' 'MMDVM broker port' "$MQTT_PORT"
+  if [[ $MMDVM_MQTT_PORT =~ ^[0-9]+$ ]] &&
+     (( 10#$MMDVM_MQTT_PORT >= 1 && 10#$MMDVM_MQTT_PORT <= 65535 )); then
+    MMDVM_MQTT_PORT=$((10#$MMDVM_MQTT_PORT))
+    break
+  fi
+  say 'Porta non valida.' 'Invalid port.'
+done
+
+if [[ $LANGUAGE == en ]]; then
+  read -r -p 'MMDVM MQTT username (blank if anonymous): ' MMDVM_MQTT_USER
+else
+  read -r -p 'Username MQTT MMDVM (vuoto se anonimo): ' MMDVM_MQTT_USER
+fi
+
+ask_secret MMDVM_MQTT_PASSWORD 'Password MQTT MMDVM (non visualizzata)' 'MMDVM MQTT password (hidden)'
+
+ask MMDVM_TLS_REPLY 'Abilitare TLS sul broker MMDVM? (s/n)' 'Enable TLS on MMDVM broker? (y/n)' 'n'
+case "${MMDVM_TLS_REPLY,,}" in
+  s|si|sì|y|yes) MMDVM_MQTT_TLS=true ;;
+  n|no) MMDVM_MQTT_TLS=false ;;
+  *) fail 'Risposta TLS non valida.' 'Invalid TLS answer.' ;;
+esac
+
 say "MMDVM.ini: $MMDVM_INI | Nodo: $NODE_ID | Topic: $TOPIC_PREFIX" "MMDVM.ini: $MMDVM_INI | Node: $NODE_ID | Topic: $TOPIC_PREFIX"
 say "Broker Agent: $MQTT_HOST:$MQTT_PORT | TLS: $MQTT_TLS" "Agent broker: $MQTT_HOST:$MQTT_PORT | TLS: $MQTT_TLS"
 confirm 'Procedere con installazione?' 'Continue with installation?' || { say 'Annullato.' 'Cancelled.'; exit 0; }
@@ -137,6 +174,10 @@ confirm 'Procedere con installazione?' 'Continue with installation?' || { say 'A
 SECRET_FILE=$(mktemp)
 chmod 600 "$SECRET_FILE"
 printf '%s' "$MQTT_PASSWORD" > "$SECRET_FILE"
+MMDVM_SECRET_FILE=$(mktemp)
+chmod 600 "$MMDVM_SECRET_FILE"
+printf '%s' "$MMDVM_MQTT_PASSWORD" > "$MMDVM_SECRET_FILE"
+unset MMDVM_MQTT_PASSWORD
 unset MQTT_PASSWORD
 
 say 'Installazione dipendenze...' 'Installing dependencies...'
@@ -145,9 +186,13 @@ packages=(python3 python3-paho-mqtt python3-psutil)
 DEBIAN_FRONTEND=noninteractive apt-get install -y "${packages[@]}"
 
 install -d -o root -g root -m 700 "$APP"
-install -o root -g root -m 644 "$SOURCE_DIR/agent.py" "$APP/agent.py"
+# Installazione di tutti i moduli Python dell'Agent.
+for source in "$SOURCE_DIR"/*.py; do
+  install -o root -g root -m 644 "$source" "$APP/$(basename "$source")"
+done
 AGENT_CREATED=true
 export APP MMDVM_INI NODE_ID TOPIC_PREFIX INTERVAL MQTT_HOST MQTT_PORT MQTT_USER MQTT_TLS SECRET_FILE
+export MMDVM_MQTT_HOST MMDVM_MQTT_PORT MMDVM_MQTT_USER MMDVM_MQTT_TLS MMDVM_SECRET_FILE
 python3 - <<'PY'
 import json, os
 from pathlib import Path
@@ -158,6 +203,9 @@ agent = {
     'interval_seconds': int(os.environ['INTERVAL']),
     'mmdvm_ini': os.environ['MMDVM_INI'],
     'broker_settings_file': str(app / 'broker.json'),
+    'control_enabled': True,
+    'mmdvm_topic_base': 'mmdvm/' + os.environ['NODE_ID'],
+    'mmdvm_broker_settings_file': str(app / 'mmdvm-broker.json'),
 }
 broker = {
     'host': os.environ['MQTT_HOST'],
@@ -166,16 +214,28 @@ broker = {
     'password': Path(os.environ['SECRET_FILE']).read_text(),
     'tls': os.environ['MQTT_TLS'] == 'true',
 }
-for name, data in [('agent.json', agent), ('broker.json', broker)]:
+mmdvm_broker = {
+    'host': os.environ['MMDVM_MQTT_HOST'],
+    'port': int(os.environ['MMDVM_MQTT_PORT']),
+    'username': os.environ['MMDVM_MQTT_USER'],
+    'password': Path(os.environ['MMDVM_SECRET_FILE']).read_text(),
+    'tls': os.environ['MMDVM_MQTT_TLS'] == 'true',
+}
+
+for name, data in [('agent.json', agent), ('broker.json', broker),
+                   ('mmdvm-broker.json', mmdvm_broker)]:
     with (app / name).open('x', encoding='utf-8') as f:
         json.dump(data, f, indent=2)
         f.write('\n')
     (app / name).chmod(0o600)
 PY
+rm -f -- "$MMDVM_SECRET_FILE"; MMDVM_SECRET_FILE=''
 rm -f -- "$SECRET_FILE"; SECRET_FILE=''
 unset MQTT_USER
 
 say 'Verifica Agent...' 'Checking Agent...'
+[[ -s "$APP/mmdvm-broker.json" ]] || fail   'Configurazione broker MMDVM mancante.'   'MMDVM broker configuration missing.'
+
 python3 -B "$APP/agent.py" --config "$APP/agent.json" --dry-run >/dev/null || fail 'verifica Agent fallita, servizio non installato.' 'Agent dry-run failed; service not installed.'
 install -o root -g root -m 644 "$SOURCE_DIR/$SERVICE" "/etc/systemd/system/$SERVICE"
 SERVICE_CREATED=true
@@ -183,5 +243,6 @@ systemctl daemon-reload
 systemctl enable --now "$SERVICE"
 systemctl is-active --quiet "$SERVICE" || fail 'Agent non attivo; consultare journalctl -u mmdvm-agent.' 'Agent inactive; inspect journalctl -u mmdvm-agent.'
 say 'Installazione completata.' 'Installation completed.'
+say 'IMPORTANTE: abilitare Remote=1 in MMDVM.ini e riavviare MMDVMHost.' 'IMPORTANT: enable Remote=1 in MMDVM.ini and restart MMDVMHost.'
 say "Dashboard: usare broker $MQTT_HOST:$MQTT_PORT e prefisso $TOPIC_PREFIX con le stesse credenziali." "Dashboard: use broker $MQTT_HOST:$MQTT_PORT and prefix $TOPIC_PREFIX with matching credentials."
 systemctl --no-pager --full status "$SERVICE" || true

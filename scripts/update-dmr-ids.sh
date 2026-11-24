@@ -24,7 +24,6 @@ curl --fail --location --silent --show-error \
 awk '
     BEGIN { valid=0; invalid=0 }
     NF == 0 { next }
-    NF == 1 && $1 ~ /^[0-9]+$/ { next }
     $1 ~ /^[0-9]+$/ && NF >= 2 { valid++; next }
     { invalid++ }
     END {
