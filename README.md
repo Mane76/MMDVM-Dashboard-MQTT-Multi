@@ -50,6 +50,26 @@ Web dashboard for MMDVMHost amateur-radio repeaters, with MQTT event collection,
 4. Configurare `mmdvm-broker.json` con host, porta, username, password e TLS
    del broker MQTT utilizzato per i comandi. Può essere diverso dal broker
    utilizzato per la telemetria.
+**Esempio di `/opt/mmdvm-agent/mmdvm-broker.json`:**
+
+```json
+{
+  "host": "192.168.0.10",
+  "port": 1883,
+  "username": "utente_mqtt",
+  "password": "password_mqtt",
+  "tls": false
+}
+```
+
+Sostituire i valori dimostrativi con quelli del proprio broker MQTT. Per TLS impostare `tls` a `true` e utilizzare la porta configurata sul broker.
+
+Proteggere il file con:
+
+```bash
+chmod 600 /opt/mmdvm-agent/mmdvm-broker.json
+```
+
 5. Eseguire `update-agent.sh` per aggiornare i moduli Python dell'Agent.
 6. Abilitare **`Remote=1`** nella sezione corretta di `MMDVM.ini`.
 7. Riavviare MMDVMHost e `mmdvm-agent.service`.
@@ -79,6 +99,26 @@ Non è necessario installare nuovi servizi systemd per il Mobile Control.
 4. Configure `mmdvm-broker.json` with the MQTT command broker host, port,
    username, password and TLS settings. This broker may differ from the
    telemetry broker.
+**Example `/opt/mmdvm-agent/mmdvm-broker.json`:**
+
+```json
+{
+  "host": "192.168.0.10",
+  "port": 1883,
+  "username": "utente_mqtt",
+  "password": "password_mqtt",
+  "tls": false
+}
+```
+
+Replace the example values with your MQTT broker settings. For TLS, set `tls` to `true` and use the port configured on your broker.
+
+Protect the file with:
+
+```bash
+chmod 600 /opt/mmdvm-agent/mmdvm-broker.json
+```
+
 5. Run `update-agent.sh` to update the Agent Python modules.
 6. Enable **`Remote=1`** in the appropriate section of `MMDVM.ini`.
 7. Restart MMDVMHost and `mmdvm-agent.service`.
